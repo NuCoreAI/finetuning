@@ -1,0 +1,51 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "create device fine-tuning dataset", 
+            "type": "debugpy",
+            "request": "launch",
+            "program": "create_device_ft_data.py",
+            "console": "integratedTerminal",
+            "justMyCode": false
+        },
+        {
+            "name": "create concepts fine-tuning dataset", 
+            "type": "debugpy",
+            "request": "launch",
+            "program": "create_concepts_ft_data.py",
+            "console": "integratedTerminal",
+            "justMyCode": false
+        },
+        {
+            "name": "create DSL (JSONLogic) fine-tuning dataset", 
+            "type": "debugpy",
+            "request": "launch",
+            "program": "create_dsls_ft_data.py",
+            "console": "integratedTerminal",
+            "justMyCode": false
+        },
+        {
+            "name": "combine samples", 
+            "type": "debugpy",
+            "request": "launch",
+            "program": "combine_samples.py",
+            "console": "integratedTerminal",
+            "args": [
+               "--input_path=/home/michel/workspace/nucore/ai-workflow/finetuning_data/datasets/dsls",
+            ],
+            "justMyCode": false
+        },
+        {
+            "name": "combine samples - no path", 
+            "type": "debugpy",
+            "request": "launch",
+            "program": "combine_samples.py",
+            "console": "integratedTerminal",
+            "justMyCode": false
+        }
+    ]
+}
