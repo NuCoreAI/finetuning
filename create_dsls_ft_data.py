@@ -3,12 +3,11 @@ from openai import OpenAI
 import json
 import os
 from pathlib import Path
-from ai_iox_workflow.config import DEFAULT_AI_INSTALL_DIR
-from ai_iox_workflow.nucore import NuCore
+from util import get_data_directory
 
 
 # === CONFIGURATION ===
-SECRETS_DIR = Path(os.path.join(os.path.expanduser("~"), DEFAULT_AI_INSTALL_DIR, "finetuning_data", "secrets"))
+SECRETS_DIR = Path(get_data_directory("secrets", None))
 if not SECRETS_DIR.exists():
     raise FileNotFoundError(f"Secrets directory {SECRETS_DIR} does not exist. Please create it and add your OpenAI API key.")
 # Load the OpenAI API key from the secrets file
@@ -228,8 +227,8 @@ if __name__ == "__main__":
     parser.add_argument("--output_path", type=str, help="Path to the output directory where flattened structures are stored. If none given, it will be printed to stdout.")
     args = parser.parse_args()
 
-    INPUT_DIR = Path(os.path.join(os.path.expanduser("~"), DEFAULT_AI_INSTALL_DIR, "finetuning_data", "datasets", "devices"))
-    OUTPUT_DIR = Path(os.path.join(os.path.expanduser("~"), DEFAULT_AI_INSTALL_DIR, "finetuning_data", "datasets", "dsls"))
+    INPUT_DIR = Path(get_data_directory("datasets", "devices"))
+    OUTPUT_DIR = Path(get_data_directory("datasets", "dsls"))
 
     input_path = Path(args.input_path) if args.input_path else INPUT_DIR
     if not input_path.exists() or not input_path.is_dir():
