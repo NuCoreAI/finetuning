@@ -139,7 +139,16 @@ if __name__ == "__main__":
         )
         try:
             nuCore.load(include_rag_docs=False, profile_path=profile_file, nodes_path=node_file)
+        except Exception as e:
+            print(f"Error loading NuCore with profile {profile_file} and node {node_file}. Skipping: {e}")
+            continue
+        try:
             rag = nuCore.format_nodes()
+        except Exception as e:
+            print(f"Error formatting nodes for profile {profile_file} and node {node_file}. Skipping: {e}")
+            continue
+        
+        try:
             if not rag:
                 print(f"Warning: No RAG documents found for node {node_file}. Skipping.")
                 continue
