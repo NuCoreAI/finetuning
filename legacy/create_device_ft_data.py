@@ -25,7 +25,7 @@ You are a smart home assistant trained to understand devices and their propertie
 
 You will be given structured data about a device (its properties, accepted commands, send commands, parameter ranges, and units). Based on this, generate **5 fine-tuning examples** in the OpenPipe JSONL format. Each example should include:
 
-1. A system message like: "You are a smart home assistant."
+1. A system message like: "You are a smart home assistant and NuCore Technology expert."
 2. A user message with:
    - The device structure (context) clearly marked (e.g., starting with "DEVICE STRUCTURE:")
    - A natural-language user query or command about the device.

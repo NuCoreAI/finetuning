@@ -5,26 +5,10 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "create device fine-tuning dataset", 
+            "name": "create fine-tuning samples", 
             "type": "debugpy",
             "request": "launch",
-            "program": "create_device_ft_data.py",
-            "console": "integratedTerminal",
-            "justMyCode": false
-        },
-        {
-            "name": "create concepts fine-tuning dataset", 
-            "type": "debugpy",
-            "request": "launch",
-            "program": "create_concepts_ft_data.py",
-            "console": "integratedTerminal",
-            "justMyCode": false
-        },
-        {
-            "name": "create DSL (JSONLogic) fine-tuning dataset", 
-            "type": "debugpy",
-            "request": "launch",
-            "program": "create_dsls_ft_data.py",
+            "program": "create_samples.py",
             "console": "integratedTerminal",
             "justMyCode": false
         },
