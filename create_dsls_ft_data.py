@@ -1,4 +1,4 @@
-## Generate OpenPipe fine-tuning data for NuCore smart home devices Colored Petri Nets(CPN) format
+## Generate OpenPipe fine-tuning data for NuCore smart home devices using dsl (domain specific language)
 from openai import OpenAI
 import json
 import os
@@ -23,123 +23,46 @@ TEMPERATURE = 0.3
 MAX_TOKENS = 32_000 # Adjust based on your needs, but ensure it fits within the model's limits
 
 SYSTEM_PROMPT = """
-You are an expert in smart home automation and optimization for NuCore-based systems.
+You are an expert in NuCore DSL and smart-home automation.
+Generate valid OpenPipe fine-tuning samples in JSON for NuCore DSL.
+Each sample must be a separate OpenPipe object. Optimize outputs for code models.
 
-You will receive a flattened structure description of smart devices, including 
-- Properties (e.g. `ST`, `CSP`)
+---
+
+You will receive a flattened smart device structure, labeled `DEVICE STRUCTURE:`
+Each device shows:
+- Properties (e.g. `ST`, `CSP`) with `uom` and `precision`
 - Commands (`accepts`, `sends`)
-- Parameters (with name, value, unit of measure, precision)
-The full structure is labled as `DEVICE STRUCTURE:` and a device is delineated by ***Device***.
-
-Your task is to generate OpenPipe fine-tuning samples that teach a model to construct automation and optimization routines using an extended version of JSONLogic.
+- Parameters (name, value, uom, precision)
 
 ---
 
-**Important Distinction Between COS and COC:**
+### OUTPUT FORMAT
 
-1. **COS (Change of State)**:  
-   A device property changes as a result of a command. This is recorded if and only if the value truly changes.  
-   - Example: `ST` becomes 100% when the device is turned on via API.
-
-2. **COC (Change of Control)**:  
-   A device initiates a command (e.g. physical double-click). This is always reported, even if the property does not change.  
-   - Example: `DFON` sent when user physically turns on device—even if it was already on.
-
----
-
-### Condition Examples:
-
-**COS**: Check property state.
-{
-  "==": {
-    "device": "thermostat_1",
-    "status": "ST",
-    "value": 100,
-    "uom": "percent",
-    "precision": 1
-  }
-}
-
-**COC**: Check command from **sends**:
-{
-  "==": {
-    "device": "switch",
-    "coc": "DFON",
-    "parameters": [
-      { "name": "power", "value": 100, "uom": "percent", "precision": 1 }
-    ]
-  }
-}
-
-Action Format:
-{
-  "device": "thermostat_1",
-  "command": "SetCoolSetPoint",
-  "parameters": [
-    { "name": "CSP", "value": 7800, "uom": "fahrenheit", "precision": 2 }
-  ]
-}
-
----
-
-Output Requirements:
-- Use double quotes for all strings and object keys (valid JSON).
-- Device names and commands must come from the provided DEVICE STRUCTURE.
-- Use natural language in user queries (e.g. “make it cooler,” “turn off lights,” “optimize for low price”).
-- Conditions may include COS, COC, time, price, or status logic.
-- Actions must include full command syntax with parameters and metadata.
-- Use realistic device names, values, units, and patterns.
-- Use  JSONLogic:
-    - Give a meaningful name to each automation routine using the `name` key.
-    - No nested if blocks
-    - One top-level object: "automation" or "routine"
-    - Conditions and actions expressed as plain JSON key/values
-    - Return only the **raw JSON object**, not a string. Do not wrap it in quotes. Do not escape it.
-
-Output must follow OpenPipe format::
+**OpenPipe object per sample**
 {
   "messages": [
-    {
-      "role": "system",
-      "content": "You are a smart home assistant and NuCore expert in automation and optimization."
-    },
-    {
-      "role": "user",
-      "content": "DEVICE STRUCTURE:\n<device_info>\n\nUSER QUERY:\n<query here>"
-    },
-    {
-      "role": "assistant",
-      "content": "<step-by-step reasoning>\n\n<JSONLogic routine as json object>"
-    }
+    { "role": "system", "content": "You are a smart home assistant and NuCore expert in automation and optimization." },
+    { "role": "user", "content": "DEVICE STRUCTURE:\n<device_info>\n\nUSER QUERY:\n<free form natural language request>" },
+    { "role": "assistant", "content": "Reasoning: <clear concise explanation optimized for finetuning code models>\n\n{\"routine\": { ... }}" }
   ]
 }
 
-Guidelines:
+---
 
-    Always start with detailed step-by-step reasoning, followed by JSON output.
+<dsls_prompt_template>
 
-    Use double quotes for all strings and object keys (valid JSON).
+---
 
-    Device names and commands must come from the provided DEVICE STRUCTURE.
+### COMPLEXITY REQUIREMENTS
+- Use **mixed triggers**: COS, COC, and schedules 
+- Always mix at least two logical operators (and + or).
+- Prefer **grouped logic** with `(` and `)`
+- Alternate `and`/`or` combinations
+- Vary devices and properties across samples
+- Output valid JSON only, no trailing commas
+- Return OpenPipe JSON objects only, no extra commentary
 
-    Use natural language in user queries (e.g. “make it cooler,” “turn off lights,” “optimize for low price”).
-
-    Conditions may include COS, COC, time, price, or status logic.
-
-    Actions must include full command syntax with parameters and metadata.
-
-    Use realistic device names, values, units, and patterns.
-    
-
-Reminder:
-
-COS = changes in property values.
-COC = commands sent by devices due to physical or external control.
-They are not interchangeable and must be evaluated separately.
-Return only the **raw JSON object**, not a string. Do not wrap it in quotes. Do not escape it.
-
-Finally:
-Output as many samples as possible. Each example must be in a single JSON object.
 
 """
 
@@ -180,6 +103,10 @@ def generate_openpipe_entries(full_text, output_path, dump=True):
             
             encoded = assistant_reply.encode("utf-8")
             try:
+                encoded = encoded.replace('{"\\(": 1}', '{"(": 1}')
+                encoded = encoded.replace('{"\\)": 1}', '{")": 1}')
+                # (optionally handle cases with spaces:)
+                encoded = encoded.replace('"\\(": 1', '"(": 1').replace('"\\)": 1', '")": 1')
                 unescaped = json.loads(encoded)
     
                 i = 0

@@ -38,7 +38,7 @@ Output format for each sample: a single JSON object per line as per OpenPipe sta
 ```json
 {
   "messages": [
-    {"role": "system", "content": "You are a smart home assistant."},
+    {"role": "system", "content": "You are a smart home assistant and NuCore Technology expert."},
     {"role": "user", "content": "DEVICE STRUCTURE:\n<device_info>\n\nUSER QUERY:\n<query here>"},
     {"role": "assistant", "content": "<correct, context-aware, reasoned response>"}
   ]
@@ -74,7 +74,6 @@ Edge cases & reminders:
 - Ensure is sample is unique and covers all aspects of the device.
 - Avoid repetition across samples.
 - Ensure reasoning always precedes conclusions in the assistant's reply.
-- Avoid device IDs or overly technical device names.
 - Cover various units (e.g., %, °C, kWh, etc.) and property types (string, int, float).
 - Make queries reflect plausible user intentions.
 - Maintain strict compliance with single-line, double-quoted JSON per sample.
