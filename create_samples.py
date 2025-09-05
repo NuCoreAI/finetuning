@@ -30,20 +30,20 @@ MODEL = "gpt-4.1-mini"
 TEMPERATURE = 0.0
 
 try:
-    SYSTEM_PROMPT = ""
-    with open(os.path.join(PROMPTS_DIR, "generator.prompt"), "r") as f:
-        SYSTEM_PROMPT = f.read()
+    TRAIN_PROMPT = ""
+    with open(os.path.join(PROMPTS_DIR, "commands.prompt.train"), "r") as f:
+        TRAIN_PROMPT = f.read()
 
-    RUNTIME_SYSTEM_PROMPT = ""
-    with open(os.path.join(PROMPTS_DIR, "runtime.system.prompt"), "r") as f:
-        RUNTIME_SYSTEM_PROMPT = f.read()
+    RUN_PROMPT= ""
+    with open(os.path.join(PROMPTS_DIR, "commands.prompt.run"), "r") as f:
+        RUN_PROMPT = f.read().replace("\n", "\\n")
 
 except:
     raise ValueError("Failed to load system prompts.")
 
 
-##Now, replace {{SYSTEM_PROMPT}} in SYSTEM_PROMPT with RUNTIME_SYSTEM_PROMPT
-SYSTEM_PROMPT = SYSTEM_PROMPT.replace("{{SYSTEM_PROMPT}}", RUNTIME_SYSTEM_PROMPT)
+##Now, replace {{NUCORE_BASICS}} in SYSTEM_PROMPT with RUNTIME_SYSTEM_PROMPT
+TRAIN_PROMPT = TRAIN_PROMPT.replace("{{COMMAND_PROMPTS_RUNTIME}}", f"{RUN_PROMPT}")
 
 
 def generate_openpipe_entries(full_text, output_path, dump=True):
@@ -52,10 +52,12 @@ def generate_openpipe_entries(full_text, output_path, dump=True):
     client = OpenAI(api_key=OPENAI_API_KEY)  # or use environment variable
     jsonl_data = [] 
 
-    # replace <device_info> in the system prompt with the actual device info
-    system_prompt = SYSTEM_PROMPT.replace("{{DEVICE_STRUCTURE}}", full_text)
-
     if full_text: 
+        # replace <device_info> in the system prompt with the actual device info
+        system_prompt = TRAIN_PROMPT.replace("{{DEVICE_STRUCTURE}}", full_text)
+        with open("/tmp/nucore.system.prompt", "w") as f:
+            f.write(system_prompt)
+
         try:
             messages = [
                 {"role": "system", "content": system_prompt},
@@ -80,13 +82,19 @@ def generate_openpipe_entries(full_text, output_path, dump=True):
                         jsonl_data.append(json_data)
                     except json.JSONDecodeError as e:
                         print(f"Error decoding JSON: {e} | Entry: {entry}")
+                        with open(output_path.with_suffix(".error"), "w") as f:
+                            f.write(str(e)+"\n*****\n")
+                            f.write(str(entry))
 
         except Exception as e:
             print(f"Error: {e} | Input: {full_text[:60]}")
+            with open(output_path.with_suffix(".error"), "w") as f:
+                f.write(str(e)+"\n*****\n")
+                f.write(str(assistant_reply))
 
-    with open(output_path, "w") as f:
-        for item in jsonl_data:
-            f.write(json.dumps(item) + "\n")
+        with open(output_path, "w") as f:
+            for item in jsonl_data:
+                f.write(json.dumps(item) + "\n")
 
     print(f"✅ {len(jsonl_data)} entries saved to {output_path}")
 
@@ -148,14 +156,25 @@ if __name__ == "__main__":
             if not rag_docs:
                 print(f"Warning: No documents found in RAG for node {node_file}. Skipping.")
                 continue
-            full_text = ""
-            for rag_doc in rag_docs:
-                full_text += rag_doc
-            if out_file:
-                print(f"Writing to {out_file}")
-                if not out_file.parent.exists():
-                    out_file.parent.mkdir(parents=True, exist_ok=True)
-                generate_openpipe_entries(full_text, out_file, dump=True)
+
+
+            for i in range(0, len(rag_docs), 3):
+                batch = rag_docs[i:i+3]
+                full_text = "".join(batch)
+                if out_file:
+                    batch_file = out_file.with_stem(f"{out_file.stem}_{i//3 + 1}")
+                    print(f"Writing to {batch_file}")
+                    batch_file.parent.mkdir(parents=True, exist_ok=True)
+                    generate_openpipe_entries(full_text, batch_file, dump=True) 
+
+#            full_text = ""
+#            for rag_doc in rag_docs:
+#                full_text += rag_doc
+#            if out_file:
+#                print(f"Writing to {out_file}")
+#                if not out_file.parent.exists():
+#                    out_file.parent.mkdir(parents=True, exist_ok=True)
+#                generate_openpipe_entries(full_text, out_file, dump=True)
 
         except Exception as e:
             print(f"Error processing RAG documents for node {node_file}. Skipping: {e}")
