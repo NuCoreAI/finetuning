@@ -8,6 +8,7 @@ import os
 from pathlib import Path
 from nucore import NuCore
 from util import get_data_directory
+from typing import Literal
 
 
 # === CONFIGURATION ===
@@ -29,25 +30,30 @@ if not PROMPTS_DIR.exists():
 MODEL = "gpt-4.1-mini"
 TEMPERATURE = 0.0
 
-try:
+TRAIN_PROMPT = ""
+RUN_PROMPT = ""
+
+def setup_prompts(type: Literal["properties", "commands", "routines", "general"]):
+    global TRAIN_PROMPT, RUN_PROMPT
     TRAIN_PROMPT = ""
-    with open(os.path.join(PROMPTS_DIR, "commands.prompt.train"), "r") as f:
-        TRAIN_PROMPT = f.read()
+    RUN_PROMPT = ""
+    try:
+        with open(os.path.join(PROMPTS_DIR, f"{type}.prompt.train"), "r") as f:
+            TRAIN_PROMPT = f.read()
+    except:
+        raise ValueError(f"Failed to load training prompt for type {type}.")
 
-    RUN_PROMPT= ""
-    with open(os.path.join(PROMPTS_DIR, "commands.prompt.run"), "r") as f:
-        RUN_PROMPT = f.read().replace("\n", "\\n")
+    try:
+        with open(os.path.join(PROMPTS_DIR, f"{type}.prompt.run"), "r") as f:
+            RUN_PROMPT = f.read().replace("\n", "\\n")
+    except:
+        raise ValueError(f"Failed to load run prompt for type {type}.")
 
-except:
-    raise ValueError("Failed to load system prompts.")
-
-
-##Now, replace {{NUCORE_BASICS}} in SYSTEM_PROMPT with RUNTIME_SYSTEM_PROMPT
-TRAIN_PROMPT = TRAIN_PROMPT.replace("{{COMMAND_PROMPTS_RUNTIME}}", f"{RUN_PROMPT}")
+    ##Now, replace {{NUCORE_BASICS}} in SYSTEM_PROMPT with RUNTIME_SYSTEM_PROMPT
+    TRAIN_PROMPT = TRAIN_PROMPT.replace("{{TEMPLATE_PROMPTS_RUNTIME}}", f"{RUN_PROMPT}")
 
 
 def generate_openpipe_entries(full_text, output_path, dump=True):
-
 
     client = OpenAI(api_key=OPENAI_API_KEY)  # or use environment variable
     jsonl_data = [] 
@@ -55,8 +61,6 @@ def generate_openpipe_entries(full_text, output_path, dump=True):
     if full_text: 
         # replace <device_info> in the system prompt with the actual device info
         system_prompt = TRAIN_PROMPT.replace("{{DEVICE_STRUCTURE}}", full_text)
-        with open("/tmp/nucore.system.prompt", "w") as f:
-            f.write(system_prompt)
 
         try:
             messages = [
@@ -104,7 +108,11 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Generate OpenPipe fine-tuning entries from device descriptions.")
     parser.add_argument("--input_path", type=str, help="Path to the directory that holds profiles and nodes directories within. If none given, it will use the default references directory.")
     parser.add_argument("--output_path", type=str, help="Path to the output directory where flattened structures are stored. If none given, it will be printed to stdout.")
+    parser.add_argument("--types", type=str, help="Type of training: properties, commands, routines, general.")
     args = parser.parse_args()
+
+    types = args.types.split(",") if args.types else ["properties", "commands"]
+
 
     REFERENCE_DIR = Path(get_data_directory("customer_data", None))
     OUTPUT_DIR = Path(get_data_directory("datasets", "samples"))
@@ -126,60 +134,63 @@ if __name__ == "__main__":
         raise ValueError(f"Nodes directory {nodes_dir} does not exist or is not a directory.")
     if not profiles_dir.exists() or not profiles_dir.is_dir():
         raise ValueError(f"Profiles directory {profiles_dir} does not exist or is not a directory.")
-    
-    for node_file in nodes_dir.glob("*.xml"):
-        profile_file = profiles_dir / (f"{node_file.stem}.json").replace("nodes-", "profile-")
-        out_file = None if not output_path else output_path / f"{node_file.stem}_finetune.jsonl"
-        
-        print(f"Processing node: {node_file.name} with profile: {profile_file.name}")
-        if not profile_file.exists():
-            print(f"Warning: Profile file {profile_file} does not exist for node {node_file}. Skipping.")
-            continue
-        nuCore = NuCore(collection_path="/tmp/nucore.finetuner", collection_name="finetuner", backend_url="http://localhost:8000", backend_username="admin", backend_password="admin"
-        )
-        try:
-            nuCore.load(include_rag_docs=False, profile_path=profile_file, nodes_path=node_file)
-        except Exception as e:
-            print(f"Error loading NuCore with profile {profile_file} and node {node_file}. Skipping: {e}")
-            continue
-        try:
-            rag = nuCore.format_nodes()
-        except Exception as e:
-            print(f"Error formatting nodes for profile {profile_file} and node {node_file}. Skipping: {e}")
-            continue
-        
-        try:
-            if not rag:
-                print(f"Warning: No RAG documents found for node {node_file}. Skipping.")
+
+    for type in types:
+        type=type.strip()
+        setup_prompts(type)
+        for node_file in nodes_dir.glob("*.xml"):
+            profile_file = profiles_dir / (f"{node_file.stem}.json").replace("nodes-", "profile-")
+            out_file = None if not output_path else output_path / f"{node_file.stem}_finetune.jsonl"
+            
+            print(f"Processing node: {node_file.name} with profile: {profile_file.name}")
+            if not profile_file.exists():
+                print(f"Warning: Profile file {profile_file} does not exist for node {node_file}. Skipping.")
                 continue
-            rag_docs = rag["documents"]
-            if not rag_docs:
-                print(f"Warning: No documents found in RAG for node {node_file}. Skipping.")
+            nuCore = NuCore(collection_path="/tmp/nucore.finetuner", collection_name="finetuner", backend_url="http://localhost:8000", backend_username="admin", backend_password="admin"
+            )
+            try:
+                nuCore.load(include_rag_docs=False, profile_path=profile_file, nodes_path=node_file)
+            except Exception as e:
+                print(f"Error loading NuCore with profile {profile_file} and node {node_file}. Skipping: {e}")
                 continue
+            try:
+                rag = nuCore.format_nodes()
+            except Exception as e:
+                print(f"Error formatting nodes for profile {profile_file} and node {node_file}. Skipping: {e}")
+                continue
+            
+            try:
+                if not rag:
+                    print(f"Warning: No RAG documents found for node {node_file}. Skipping.")
+                    continue
+                rag_docs = rag["documents"]
+                if not rag_docs:
+                    print(f"Warning: No documents found in RAG for node {node_file}. Skipping.")
+                    continue
 
 
-            for i in range(0, len(rag_docs), 3):
-                batch = rag_docs[i:i+3]
-                full_text = "".join(batch)
-                if out_file:
-                    batch_file = out_file.with_stem(f"{out_file.stem}_{i//3 + 1}")
-                    print(f"Writing to {batch_file}")
-                    batch_file.parent.mkdir(parents=True, exist_ok=True)
-                    generate_openpipe_entries(full_text, batch_file, dump=True) 
+                for i in range(0, len(rag_docs), 3):
+                    batch = rag_docs[i:i+3]
+                    full_text = "".join(batch)
+                    if out_file:
+                        batch_file = out_file.with_stem(f"{out_file.stem}_{i//3 + 1}_{type}")
+                        print(f"Writing to {batch_file}")
+                        batch_file.parent.mkdir(parents=True, exist_ok=True)
+                        generate_openpipe_entries(full_text, batch_file, dump=True) 
 
-#            full_text = ""
-#            for rag_doc in rag_docs:
-#                full_text += rag_doc
-#            if out_file:
-#                print(f"Writing to {out_file}")
-#                if not out_file.parent.exists():
-#                    out_file.parent.mkdir(parents=True, exist_ok=True)
-#                generate_openpipe_entries(full_text, out_file, dump=True)
+    #            full_text = ""
+    #            for rag_doc in rag_docs:
+    #                full_text += rag_doc
+    #            if out_file:
+    #                print(f"Writing to {out_file}")
+    #                if not out_file.parent.exists():
+    #                    out_file.parent.mkdir(parents=True, exist_ok=True)
+    #                generate_openpipe_entries(full_text, out_file, dump=True)
 
-        except Exception as e:
-            print(f"Error processing RAG documents for node {node_file}. Skipping: {e}")
-            continue    
-                    
+            except Exception as e:
+                print(f"Error processing RAG documents for node {node_file}. Skipping: {e}")
+                continue    
+                        
                     
                     
      #EXAMPLES.append((node_data, profile_data))

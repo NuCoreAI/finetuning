@@ -5,11 +5,14 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "create fine-tuning samples", 
+            "name": "generate fine-tuning samples", 
             "type": "debugpy",
             "request": "launch",
             "program": "create_samples.py",
             "console": "integratedTerminal",
+            "args": [
+               "--types= commands, properties",
+            ],
             "justMyCode": false
         },
         {

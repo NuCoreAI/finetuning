@@ -10,7 +10,7 @@ The output format for each sample must strictly adhere to:
 
 Now, analyze the content in system role above and DEVICE STRUCTURE in the user role above and generate a minimum of 3 samples: 
 For each sample:
-1. Generate a realistic, educational, USER QUERY that may support mulitiple commands
-2. Balance across: single-device actions, multi-device (“both/all/room”), thermostats, fans, shades, color (prefer XY), edge cases (missing params, ambiguous device), synonyms/typos
+1. Generate a realistic, educational, USER QUERY that may support mulitiple properties
+2. Balance across: single-device properties, multi-device (“both/all/room”), thermostats, fans, shades, color, state of charge, edge cases (missing params, ambiguous device or property), synonyms/typos
 
 
