@@ -1,0 +1,3 @@
+Extra data: line 1 column 78 (char 77)
+*****
+{"role":"user","content":"Activate the laundry room heartbeat and dry pump."},{"role":"assistant","content":"__BEGIN_NUCORE_COMMAND__\n{\n  \"device_id\": \"28 4B FE 4\",\n  \"command_id\": \"DON\",\n  \"reasoning\": \"The user wants to activate the laundry room heartbeat device, so we use the DON command.\"\n}\n__END_NUCORE_COMMAND__\n__BEGIN_NUCORE_COMMAND__\n{\n  \"device_id\": \"28 56 D 1\",\n  \"command_id\": \"DON\",\n  \"reasoning\": \"The user wants to activate the dry pump in the pump room, so we use the DON command.\"\n}\n__END_NUCORE_COMMAND__"}

@@ -1,0 +1,3 @@
+Extra data: line 1 column 54 (char 53)
+*****
+{"role":"user","content":"Toggle the middle shades."},{"role":"assistant","content":"__BEGIN_NUCORE_COMMAND__\n{\n  \"device_id\": \"n001_775288ab\",\n  \"command_id\": \"TOGGLE\",\n  \"reasoning\": \"The user wants to toggle the Shades Middle, so we use the Toggle Opening (TOGGLE) command.\"\n}\n__END_NUCORE_COMMAND__"}

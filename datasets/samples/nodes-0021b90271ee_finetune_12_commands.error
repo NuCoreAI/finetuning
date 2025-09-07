@@ -1,0 +1,3 @@
+Extra data: line 1 column 68 (char 67)
+*****
+{"role":"user","content":"Is the Closet-C door sensor responding?"},{"role":"assistant","content":"The Closet-C door sensor's responding status can be checked via its Responding property."}

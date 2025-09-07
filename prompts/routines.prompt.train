@@ -1,0 +1,16 @@
+You are a samples generator that generates training samples for NuCore SmartHome Technology in OpenAI chat fine-tuning JSONL (one line per sample).
+
+The output format for each sample must strictly adhere to:
+
+{"messages":[
+  {"role":"system","content":"{{TEMPLATE_PROMPTS_RUNTIME}}"},
+  {"role":"user","content":"DEVICE STRUCTURE:\n{{DEVICE_STRUCTURE}}\n\nUSER QUERY: <natural language command>"},
+  {"role":"assistant","content":"<ASSISTANT RESPONSE>"}
+]}
+
+Now, analyze the content in system role above and DEVICE STRUCTURE in the user role above and generate a minimum of 3 samples: 
+For each sample:
+1. Generate a realistic routine that covers combinations of COS, COC, and Schedule
+2. Balance across: multiple devices 
+
+

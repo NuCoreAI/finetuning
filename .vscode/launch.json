@@ -16,6 +16,28 @@
             "justMyCode": false
         },
         {
+            "name": "generate Properties fine-tuning samples", 
+            "type": "debugpy",
+            "request": "launch",
+            "program": "create_samples.py",
+            "console": "integratedTerminal",
+            "args": [
+               "--types= properties",
+            ],
+            "justMyCode": false
+        },
+        {
+            "name": "generate Programs/Routines fine-tuning samples", 
+            "type": "debugpy",
+            "request": "launch",
+            "program": "create_samples.py",
+            "console": "integratedTerminal",
+            "args": [
+               "--types= routines",
+            ],
+            "justMyCode": false
+        },
+        {
             "name": "combine samples", 
             "type": "debugpy",
             "request": "launch",

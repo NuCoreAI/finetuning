@@ -1,0 +1,3 @@
+Extra data: line 1 column 65 (char 64)
+*****
+{"role":"user","content":"Make the main sump leak sensor beep."},{"role":"assistant","content":"__BEGIN_NUCORE_COMMAND__\n{\n  \"device_id\": \"55 8 AB 4\",\n  \"command_id\": \"BEEP\",\n  \"command_params\": [\n    {\"id\": \"n/a\", \"value\": 0, \"uom\": \"100\"}\n  ],\n  \"reasoning\": \"The user wants to beep the main sump leak sensor, so we use the BEEP command with parameter value 0 for device 55 8 AB 4.\"\n}\n__END_NUCORE_COMMAND__"}

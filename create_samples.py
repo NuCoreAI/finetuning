@@ -53,9 +53,9 @@ def setup_prompts(type: Literal["properties", "commands", "routines", "general"]
     TRAIN_PROMPT = TRAIN_PROMPT.replace("{{TEMPLATE_PROMPTS_RUNTIME}}", f"{RUN_PROMPT}")
 
 
-def generate_openpipe_entries(full_text, output_path, dump=True):
+def generate_openpipe_entries(full_text, output_path, type, dump=True):
 
-    client = OpenAI(api_key=OPENAI_API_KEY)  # or use environment variable
+    client = OpenAI(api_key=globals()[f"OPENAI_API_KEY_{type}"])  # or use environment variable
     jsonl_data = [] 
 
     if full_text: 
@@ -176,7 +176,7 @@ if __name__ == "__main__":
                         batch_file = out_file.with_stem(f"{out_file.stem}_{i//3 + 1}_{type}")
                         print(f"Writing to {batch_file}")
                         batch_file.parent.mkdir(parents=True, exist_ok=True)
-                        generate_openpipe_entries(full_text, batch_file, dump=True) 
+                        generate_openpipe_entries(full_text, batch_file, type, dump=True) 
 
     #            full_text = ""
     #            for rag_doc in rag_docs:

@@ -1,0 +1,3 @@
+Extra data: line 1 column 64 (char 63)
+*****
+{"role":"user","content":"Turn on the device in the basement."},{"role":"assistant","content":"CLARIFY: Do you mean the laundry pump (ZY087_1) or the heater (ZY086_1)?"}

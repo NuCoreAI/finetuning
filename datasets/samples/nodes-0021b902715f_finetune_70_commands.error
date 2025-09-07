@@ -1,0 +1,3 @@
+Extra data: line 1 column 138 (char 137)
+*****
+{"role":"user","content":"Set the color temperature of the Master Balcony Coach Left to 4500 Kelvin with a transition time of 1 second."},{"role":"assistant","content":"__BEGIN_NUCORE_COMMAND__\n{\n  \"device_id\": \"n001_880109f3237d0b\",\n  \"command_id\": \"SET_CTBR\",\n  \"command_params\": [\n    {\"id\": \"K\", \"value\": 4500, \"uom\": \"26\"},\n    {\"id\": \"D\", \"value\": 1000, \"uom\": \"42\"},\n    {\"id\": \"BR\", \"value\": 254, \"uom\": \"100\"}\n  ],\n  \"reasoning\": \"User requests color temperature 4500K with 1 second transition and max brightness. Using SET_CTBR command.\" \n}\n__END_NUCORE_COMMAND__\n"}
