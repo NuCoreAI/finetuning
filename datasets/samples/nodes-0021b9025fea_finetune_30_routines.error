@@ -1,0 +1,3 @@
+Extra data: line 1 column 378 (char 377)
+*****
+{"routine":{"id":104,"name":"Turn off living room light if sump pump dry sensor stops responding; fade down light at 10 PM daily","parent":0,"if":[{"IS":{"device":"bm leak sump main - dry","control":"DOF"}},{"and":1},{"EQ":{"device":"bm leak sump main - dry","status":"ERR","value":1,"uom":"enum","precision":0}}],"then":[{"device":"living room.1","command":"DOF"}],"else":[]}},{"routine":{"id":105,"name":"Fade down living room light gradually at 10 PM if on","parent":0,"if":[{"at":{"time":"22:00"}},{"and":1},{"GT":{"device":"living room.1","status":"ST","value":0,"uom":"%","precision":0}}],"then":[{"device":"living room.1","command":"FDDOWN"}],"else":[]}}]}

@@ -1,0 +1,3 @@
+Extra data: line 1 column 78 (char 77)
+*****
+{"role":"user","content":"Switch off both the front and garage entry zones."},{"role":"assistant","content":"__BEGIN_NUCORE_COMMAND__\n{\n  \"device_id\": \"n005_zone_1\",\n  \"command_id\": \"DOF\",\n  \"reasoning\": \"User wants to turn off Front Entry zone, so use DOF command.\"\n}\n__END_NUCORE_COMMAND__\n__BEGIN_NUCORE_COMMAND__\n{\n  \"device_id\": \"n005_zone_2\",\n  \"command_id\": \"DOF\",\n  \"reasoning\": \"User wants to turn off Garage Entry zone, so use DOF command.\"\n}\n__END_NUCORE_COMMAND__"}

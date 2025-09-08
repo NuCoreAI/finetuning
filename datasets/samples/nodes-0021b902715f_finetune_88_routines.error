@@ -1,0 +1,3 @@
+Extra data: line 1 column 302 (char 301)
+*****
+{"routine": {"id": 5,"name": "Fast On ratgdo-8506 Light on Double Tap","parent": 0,"if": [{"IS": {"device": "n016_ratgdo8506_lt","control": "DFON","parameters": [{"name": "tapCount","value": 2,"uom": "count","precision": 0}]}}],"then": [{"device": "n016_ratgdo8506_lt","command": "DFON"}],"else": []}}"}

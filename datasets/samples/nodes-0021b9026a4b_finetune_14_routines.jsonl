@@ -1,0 +1,4 @@
+{"at": {"sunset": 0}}
+{"device": "ZY083_251", "command": "DOF"}
+{"at": {"time": "08:30"}}
+{"device": "ZY083_251", "command": "QUERY"}

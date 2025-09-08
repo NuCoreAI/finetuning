@@ -1,0 +1,5 @@
+{"IS": {"device": "1D C9 4A 1", "control": "DFOF"}}
+{"device": "1D CE 88 1", "command": "Dim", "parameters": []}
+{"device": "1D C9 4A 1", "command": "Off", "parameters": []}
+{")": 1}
+{"device": "1D C9 4A 1", "command": "On", "parameters": [{"name": "n/a", "value": 100, "uom": "51"}]}

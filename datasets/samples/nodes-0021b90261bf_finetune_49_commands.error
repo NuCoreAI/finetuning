@@ -1,0 +1,3 @@
+Extra data: line 1 column 63 (char 62)
+*****
+{"role":"user","content":"Turn on the keypad in the kitchen."},{"role":"assistant","content":"CLARIFY: Do you mean Kitchen: Keypad2 - C or Kitchen: Keypad2 - D?"}

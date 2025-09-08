@@ -1,0 +1,3 @@
+Extra data: line 1 column 490 (char 489)
+*****
+{"routine":{"id":102,"name":"Turn off ½BTH1-LTS-ZY052_1_SW when ZY058-Scene Responder is queried twice on weekdays 9am-5pm","parent":0,"if":[{"( ":1},{"IS":{"device":"ZY058_259","control":"QUERY","parameters":[{"name":"tapCount","value":2,"uom":"count","precision":0}]}},{"or":1},{"IS":{"device":"ZY052_1","control":"DON"}},{" )":1},{"and":1},{"weekly":{"days":"mon,tue,wed,thu,fri","from":{"time":"09:00","to":{"time":"17:00"}}}}]},"then":[{"device":"ZY052_1","command":"DOF"}],"else":[]}}

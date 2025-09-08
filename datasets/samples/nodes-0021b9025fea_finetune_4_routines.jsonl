@@ -1,0 +1,6 @@
+{"weekly": {"days": "mon,tue,wed,thu,fri", "from": {"time": "22:00", "to": {"time": "23:59"}}}}
+{"device": "1D C4 63 1", "command": "DIM"}
+{"IS": {"device": "1D C6 6F 1", "control": "DFOF"}}
+{"device": "1D C8 B 1", "command": "DOF"}
+{"weekly": {"days": "sat,sun", "from": {"time": "09:00", "to": {"time": "11:00"}}}}
+{"device": "1D C8 B 1", "command": "DON", "parameters": [{"name": "n/a", "value": 80, "uom": "%", "precision": 0}]}

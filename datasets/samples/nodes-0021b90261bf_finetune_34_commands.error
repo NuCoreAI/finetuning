@@ -1,0 +1,3 @@
+Extra data: line 1 column 81 (char 80)
+*****
+{"role":"user","content":"Can you turn on the tilt sensor? Also, make it beep."},{"role":"assistant","content":"CLARIFY: Which tilt sensor do you want to control—Beta: Tilt sensor-Opened, Beta: Tilt sensor-Closed, or Beta: Tilt sensor-Heartbeat?"}

@@ -1,0 +1,3 @@
+Extra data: line 1 column 111 (char 110)
+*****
+{"role":"user","content":"Set the backlight to 110% on the backyard landscape light in the northeast corner."},{"role":"assistant","content":"CLARIFY: The backlight brightness must be between 0 and 100%. Please provide a valid percentage for the northeast corner backyard landscape light."}

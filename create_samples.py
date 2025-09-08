@@ -27,8 +27,9 @@ if not PROMPTS_DIR.exists():
 
 
 #MODEL = "gpt-4o"  # Use the latest model available
-MODEL = "gpt-4.1-mini"
-TEMPERATURE = 0.0
+#MODEL = "gpt-4.1-mini"
+MODEL = "gpt-5-mini"
+TEMPERATURE = 1.0
 
 TRAIN_PROMPT = ""
 RUN_PROMPT = ""
