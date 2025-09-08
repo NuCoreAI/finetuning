@@ -5,35 +5,37 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "generate fine-tuning samples", 
+            "name": "generate batched fine-tuning samples", 
             "type": "debugpy",
             "request": "launch",
-            "program": "create_samples.py",
+            "program": "create_samples_batch.py",
             "console": "integratedTerminal",
             "args": [
-               "--types= commands, properties",
+               "--types= commands, properties, routines",
             ],
             "justMyCode": false
         },
         {
-            "name": "generate Properties fine-tuning samples", 
+            "name": "cancel all batch completions", 
             "type": "debugpy",
             "request": "launch",
-            "program": "create_samples.py",
+            "program": "process_batch_completion.py",
             "console": "integratedTerminal",
             "args": [
-               "--types= properties",
+               "--types= commands, properties, routines",
+               "--operation=cancel"
             ],
             "justMyCode": false
         },
         {
-            "name": "generate Programs/Routines fine-tuning samples", 
+            "name": "process batch completions", 
             "type": "debugpy",
             "request": "launch",
-            "program": "create_samples.py",
+            "program": "process_batch_completion.py",
             "console": "integratedTerminal",
             "args": [
-               "--types= routines",
+               "--types= commands, properties, routines",
+               "--operation=wait"
             ],
             "justMyCode": false
         },
