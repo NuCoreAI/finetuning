@@ -31,46 +31,95 @@ ENDPOINT = "/v1/chat/completions" # you can also use /v1/embeddings, /v1/respons
 COMPLETION_WINDOW = "24h"         # 24h or 4h depending on availability in your account
 BATCH_MAX_LINES_PER_REQUEST = 1800  # max lines per batch request for OpenAI 
 
-
 def list_batches(client:OpenAI):
     """
     List all batches and their statuses.
     """
-    batches = client.batches.list()
-    for batch in batches.data:
-        print(f"Batch ID: {batch.id}, Status: {batch.status}, Created: {batch.created_at}, Completed: {batch.completed_at}")
-    return batches.data 
+    after = None
+    while True:
+        page = client.batches.list(limit=100, after=after)
+        data = page.data or []
+        if not data:
+            break
+        for batch in data:
+            yield batch
+        # The SDK returns items sorted newest→oldest; use last id as cursor
+        after = data[-1].id
+        if not page.has_more:
+            break
 
-def make_and_save_batch(client:OpenAI, batch_num:int, lines: List[dict], batched_requests_dir: Path)->str:
-    """
-    Save a batch of lines to a temporary jsonl file and return the path.
-    """
-    print(f"Saving batch {batch_num} of {len(lines)} lines to temporary file...")
-    jsonl_path = batched_requests_dir / f"batch_{batch_num}.jsonl"
+def download_result(client:OpenAI, batch, path):
+    """Download a Files API asset to disk."""
     try:
-        with jsonl_path.open("w", encoding="utf-8") as f:
-            for obj in lines:
-                f.write(json.dumps(obj, ensure_ascii=False) + "\n")
-    except Exception as e:
-        print(f"Error saving batch {batch_num}: {e}")
-        return None
-    print(f"Batch saved to {jsonl_path}")
+#        row = [
+#            batch.id,
+#            batch.status,
+#            batch.endpoint,
+#            batch.input_file_id,
+#            batch.output_file_id or "-",
+#            batch.error_file_id or "-",
+#            batch.completion_window
+#        ]
+        out_path=""
+        output_file_id=""
+        error=False
+        if getattr(batch, "output_file_id", None):
+            out_path = path / f"{batch.id}_output.jsonl"
+            output_file_id=batch.output_file_id
+        elif getattr(batch, "error_file_id", None):
+            out_path = path / f"{batch.id}_error.jsonl"
+            output_file_id=batch.error_file_id
+            error=True
+        else:
+            raise ValueError("Neitehr output file id nor error_file id returned any content")
 
-    up = client.files.create(file=jsonl_path.open("rb"), purpose="batch")
+        contents=[]    
+        #download if and only if necessary
+        if not out_path.exists():  # avoid re-downloading
+            try:
+                print (f"downloading {out_path} ...")
+                full_contents = client.files.content(output_file_id).text
+                out_path.write_text(full_contents, encoding="utf-8")
+                contents =  full_contents.strip().splitlines()
+                for content in contents:
+                    content = json.loads(content)
+                    samples_out_path = path / f"sample_{out_path.stem}_{content['custom_id']}.jsonl"
+                    print (f"saving {samples_out_path} ...")
+                    samples_out_path.write_text((content['response']['body']['choices'][0]['message']['content']).strip(), encoding="utf-8")
+            except Exception as e:
+                print(f"[warn] failed to download output for {b.id}: {e}")
+                contents = [] 
+                error = True
+        else:
+            print (f"{out_path} already downloaded; reading the file and returning contents ...")
+            contents = out_path.read_text(encoding="utf-8").strip().splitlines()
+        return error, contents
+    except Exception as ex:
+        print(f"Error downloading {batch.id}. Skipping: {e}")
 
-    # Create batch
-    batch = client.batches.create(
-        input_file_id = up.id,
-        endpoint      = ENDPOINT,          # must match the "url" used in each line
-        completion_window = COMPLETION_WINDOW
-    )
-    batch_id = batch.id
-    #now rename the request file to include the batch id
-    new_jsonl_path = batched_requests_dir / f"batch_{batch_num}_{batch_id}.jsonl"
-    os.rename(jsonl_path, new_jsonl_path)
-    jsonl_path = new_jsonl_path
-    print(f"Created batch: {jsonl_path} with id: {batch_id}")
-    return jsonl_path, batch_id
+def download_results(client:OpenAI, path:Path):
+    outputs_all: List[str] = []
+    errors_all: List[str]  = []
+    try:
+        batches = list_batches(client)
+        for batch in batches:
+            if batch.status == "cancelled":
+                print(f"{batch.id} is cancelled; ignoring ...")
+                continue
+            if batch.status == "completed":
+                error, contents = download_result(client, batch, path)
+                if contents:
+                    if error:
+                        errors_all.extend(contents)
+                    else:
+                        outputs_all.extend(contents)
+            else:
+                print(f"{batch.id} is not complete (status == {batch.status})... ignoring")
+    except Exception as ex:
+        print(f"failed downloading results {str(ex)}")
+        return None, None
+    return outputs_all, errors_all
+
 
 
 # Example usage
@@ -79,12 +128,13 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Process batch completions (cancel, wait, list).")
     parser.add_argument("--output_path", type=str, help="Path to the output directory where the samples are stored. If none given, it will be printed to stdout.")
     parser.add_argument("--types", type=str, help="Type of training: properties, commands, routines, general.")
-    parser.add_argument("--operation", type=str, help="Operation to perform on the batches: cancel, wait, list.")
+    parser.add_argument("--operation", type=str, help="Operation to perform on the batches: cancel, list, process")
 
     args = parser.parse_args()
 
     types = args.types.split(",") if args.types else ["properties", "commands"]
     operation = args.operation if args.operation else "list"
+    operation = operation.strip()
 
 
     REFERENCE_DIR = Path(get_data_directory("customer_data", None))
@@ -96,34 +146,25 @@ if __name__ == "__main__":
     if not output_path.exists() or not output_path.is_dir():
         raise ValueError(f"Output path {output_path} does not exist or is not a directory.")
 
-    for type in types:
-        type=type.strip()
-        client = OpenAI(api_key=globals()[f"OPENAI_API_KEY_BATCH"])  # or use environment variable
-        try:
-            if operation == "cancel":
-                print(f"Cancelling all batches for {type}...")
-                batches = list_batches(client)
-                for batch in batches:
-                    try:
-                        client.batches.cancel(batch.id)
-                        print(f"Cancelled batch {batch.id}")
-                    except Exception as e:
-                        print(f"Error cancelling batch {batch.id}: {e}")
-            elif operation == "wait":
-                print(f"Waiting for all batches to complete for {type}...")
-                batches = list_batches(client)
-                for batch in batches:
-                    if batch.status != "completed":
-                        print(f"Waiting for batch {batch.id} to complete...")
-                        completed_batch = client.batches.wait(batch.id, max_wait=3600)  # wait up to 1 hour
-                        print(f"Batch {batch.id} completed with status: {completed_batch.status}")
-                    else:
-                        print(f"Batch {batch.id} is already completed.")
-            elif operation == "list":
-                print(f"Listing all batches for {type}...")
-                list_batches(client)
-        except Exception as e:
-            print(f"Error processing batch for {type}. Skipping: {e}")
-            continue
+    client = OpenAI(api_key=globals()[f"OPENAI_API_KEY_BATCH"])  # or use environment variable
+    try:
+        if operation == "cancel":
+            print(f"Cancelling all batches for {type}...")
+            for batch in list_batches(client):
+                try:
+                    client.batches.cancel(batch.id)
+                    print(f"Cancelled batch {batch.id}")
+                except Exception as e:
+                    print(f"Error cancelling batch {batch.id}: {e}")
+        elif operation == "process":
+            print(f"Waiting for all batches to complete for {type}...")
+            download_results(client, OUTPUT_DIR)
+
+        elif operation == "list":
+            print(f"Listing all batches ...")
+            for batch in list_batches(client):
+                print(f"Batch ID: {batch.id}, Status: {batch.status}, Created: {batch.created_at}, Completed: {batch.completed_at}")
+    except Exception as e:
+        print(f"Error processing batch for {type}. Skipping: {e}")
 
 #    generate_openpipe_entries(EXAMPLES, "openpipe_finetune.jsonl")

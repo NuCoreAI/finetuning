@@ -35,7 +35,7 @@
             "console": "integratedTerminal",
             "args": [
                "--types= commands, properties, routines",
-               "--operation=wait"
+               "--operation= process"
             ],
             "justMyCode": false
         },

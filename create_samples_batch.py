@@ -189,7 +189,7 @@ if __name__ == "__main__":
                             if len(batch_lines) >= BATCH_MAX_LINES_PER_REQUEST:
                                 make_and_save_batch(client, batch_num, batch_lines, BATCHED_REQUESTS_DIR)
                                 batch_lines = []
-                                batch_num += 1
+                            batch_num += 1
                 #save any remaining lines
                 if batch_lines:
                     make_and_save_batch(client, batch_num, batch_lines, BATCHED_REQUESTS_DIR)
