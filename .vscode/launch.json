@@ -33,8 +33,18 @@
             "program": "process_batch_completion.py",
             "console": "integratedTerminal",
             "args": [
-               "--types= commands, properties, routines",
                "--operation=cancel"
+            ],
+            "justMyCode": false
+        },
+        {
+            "name": "archive all batch completions", 
+            "type": "debugpy",
+            "request": "launch",
+            "program": "process_batch_completion.py",
+            "console": "integratedTerminal",
+            "args": [
+               "--operation=archive"
             ],
             "justMyCode": false
         },
@@ -45,7 +55,6 @@
             "program": "process_batch_completion.py",
             "console": "integratedTerminal",
             "args": [
-               "--types= commands, properties, routines",
                "--operation= process"
             ],
             "justMyCode": false
