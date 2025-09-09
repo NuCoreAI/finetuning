@@ -39,7 +39,6 @@ def is_archived(batch)->bool:
         b = archives[batch.id]
         return b['status'] == 'archived'
     except Exception as ex:
-        print (f"failed verifying {batch.id} is archived {str(ex)}")
         return False
 
 def list_batches(client:OpenAI, include_archives:bool):
@@ -205,8 +204,8 @@ if __name__ == "__main__":
             archive_batches(client, ARCHIVED_FILE)
 
         elif operation == "list":
-            print(f"Listing all batches ...")
-            for batch in list_batches(client):
+            print(f"Listing all batches that are not completed and not in archive...")
+            for batch in list_batches(client, False):
                 print(f"Batch ID: {batch.id}, Status: {batch.status}, Created: {batch.created_at}, Completed: {batch.completed_at}")
     except Exception as e:
         print(f"Error processing batch for {type}. Skipping: {e}")

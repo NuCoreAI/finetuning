@@ -16,13 +16,24 @@
             "justMyCode": false
         },
         {
-            "name": "generate batched fine-tuning samples", 
+            "name": "create batched fine-tuning samples", 
             "type": "debugpy",
             "request": "launch",
             "program": "create_samples_batch.py",
             "console": "integratedTerminal",
             "args": [
                "--types= commands, properties, routines",
+            ],
+            "justMyCode": false
+        },
+        {
+            "name": "list all unarchived batches/status", 
+            "type": "debugpy",
+            "request": "launch",
+            "program": "process_batch_completion.py",
+            "console": "integratedTerminal",
+            "args": [
+               "--operation=list"
             ],
             "justMyCode": false
         },
