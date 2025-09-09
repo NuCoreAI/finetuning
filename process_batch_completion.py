@@ -85,9 +85,12 @@ def download_result(client:OpenAI, batch, path):
                     content = json.loads(content)
                     samples_out_path = path / f"sample_{out_path.stem}_{content['custom_id']}.jsonl"
                     print (f"saving {samples_out_path} ...")
-                    samples_out_path.write_text((content['response']['body']['choices'][0]['message']['content']).strip(), encoding="utf-8")
+                    content = content['response']['body']['choices'][0]['message']['content']
+                    print(content)
+                    content = json.loads(content.strip())
+                    samples_out_path.write_text(content.strip(), encoding="utf-8")
             except Exception as e:
-                print(f"[warn] failed to download output for {b.id}: {e}")
+                print(f"[warn] failed to download output for {batch.id}: {e}")
                 contents = [] 
                 error = True
         else:
@@ -157,7 +160,6 @@ if __name__ == "__main__":
                 except Exception as e:
                     print(f"Error cancelling batch {batch.id}: {e}")
         elif operation == "process":
-            print(f"Waiting for all batches to complete for {type}...")
             download_results(client, OUTPUT_DIR)
 
         elif operation == "list":
