@@ -27,12 +27,39 @@ if not PROMPTS_DIR.exists():
 
 
 #MODEL = "gpt-4o"  # Use the latest model available
-#MODEL = "gpt-4.1-mini"
-MODEL = "gpt-5-mini"
+#MODEL = "gpt-5-mini"
+OPENAI_MODEL = "gpt-4.1-mini"
+XAI_MODEL = "grok-code-fast-1"
 TEMPERATURE = 1.0
 
 TRAIN_PROMPT = ""
 RUN_PROMPT = ""
+
+global g_client 
+global g_model
+
+g_client = None
+g_model = None
+
+def get_client_and_model(service:str, type:str):
+    global g_client, g_model
+    if g_client:
+        return g_client, g_model
+    if not service or service == "openai":
+        g_client = OpenAI(
+            api_key=globals()[f"OPENAI_API_KEY_{type}"]
+        )  # or use environment variable
+        g_model = OPENAI_MODEL
+    elif service == "xai":
+        g_client = OpenAI(
+            api_key=globals()[f"XAI_API_KEY_SAMPLES"],  # or use environment variable,
+            base_url="https://api.x.ai/v1",
+        )
+        g_model = XAI_MODEL
+    else:
+        return None, None
+    return g_client, g_model
+
 
 def setup_prompts(type: Literal["properties", "commands", "routines", "general"]):
     global TRAIN_PROMPT, RUN_PROMPT
@@ -54,9 +81,13 @@ def setup_prompts(type: Literal["properties", "commands", "routines", "general"]
     TRAIN_PROMPT = TRAIN_PROMPT.replace("{{TEMPLATE_PROMPTS_RUNTIME}}", f"{RUN_PROMPT}")
 
 
-def generate_openpipe_entries(full_text, output_path, type, dump=True):
+def generate_openpipe_entries(full_text, output_path, service, type, dump=True):
+    #XAI=https://api.x.ai/v1/chat/completions
+    client, model = get_client_and_model(service, type)
 
-    client = OpenAI(api_key=globals()[f"OPENAI_API_KEY_{type}"])  # or use environment variable
+    if not client or not model:
+        print ("need service (xai vs. openai) ...") 
+        return None
     jsonl_data = [] 
 
     if full_text: 
@@ -69,7 +100,7 @@ def generate_openpipe_entries(full_text, output_path, type, dump=True):
             ]
 
             response = client.chat.completions.create(
-                model=MODEL,
+                model=model,
                 messages=messages,
                 temperature=TEMPERATURE
             )
@@ -110,9 +141,11 @@ if __name__ == "__main__":
     parser.add_argument("--input_path", type=str, help="Path to the directory that holds profiles and nodes directories within. If none given, it will use the default references directory.")
     parser.add_argument("--output_path", type=str, help="Path to the output directory where flattened structures are stored. If none given, it will be printed to stdout.")
     parser.add_argument("--types", type=str, help="Type of training: properties, commands, routines, general.")
+    parser.add_argument("--service", type=str, help="The service to use: xai, openai")
     args = parser.parse_args()
 
     types = args.types.split(",") if args.types else ["properties", "commands"]
+    service = args.service.strip() if args.service else "openai" 
 
 
     REFERENCE_DIR = Path(get_data_directory("customer_data", None))
@@ -177,7 +210,7 @@ if __name__ == "__main__":
                         batch_file = out_file.with_stem(f"{out_file.stem}_{i//3 + 1}_{type}")
                         print(f"Writing to {batch_file}")
                         batch_file.parent.mkdir(parents=True, exist_ok=True)
-                        generate_openpipe_entries(full_text, batch_file, type, dump=True) 
+                        generate_openpipe_entries(full_text, batch_file, service, type, dump=True) 
 
     #            full_text = ""
     #            for rag_doc in rag_docs:

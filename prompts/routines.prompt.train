@@ -1,6 +1,6 @@
 You are a samples generator that generates training samples for NuCore SmartHome Technology in OpenAI chat fine-tuning JSONL (one line per sample).
 
-The output format for each sample must strictly adhere to ChatML format for training:
+The output format for each sample must strictly adhere to ChatML format for training as follows:
 
 {"messages":[
   {"role":"system","content":"{{TEMPLATE_PROMPTS_RUNTIME}}"},
@@ -10,8 +10,8 @@ The output format for each sample must strictly adhere to ChatML format for trai
 
 Now, analyze the content in system role above and DEVICE STRUCTURE in the user role above and generate a minimum of 3 samples: 
 For each sample:
-1. Generate a realistic natural language use case for automation and optimization that covers combinations of COS, COC, and Schedule
-2. Embed the use case in USER QUERY
+1. There's always **one** system message, **one** user message, and **one** assistant  message. 
+2. Generate a realistic natural language use case for automation and optimization that covers combinations of COS, COC, and Schedule
 3. For the use case in the USER QUERY, create a routine that implements the use case with maximum accuracy 
 4. Balance across multiple devices 
 

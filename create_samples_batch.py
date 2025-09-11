@@ -28,7 +28,8 @@ if not PROMPTS_DIR.exists():
 #MODEL = "gpt-4o"  # Use the latest model available
 MODEL = "gpt-4.1-mini"
 TEMPERATURE = 0.0
-ENDPOINT = "/v1/chat/completions" # you can also use /v1/embeddings, /v1/responses, etc.
+BATCH_ENDPOINT = "/v1/chat/completions" # you can also use /v1/embeddings, /v1/responses, etc.
+REQUEST_ENDPOINT = "/v1/chat/completions" # OpenAI automatically preprends /v1 
 COMPLETION_WINDOW = "24h"          # 24h or 4h depending on availability in your account
 BATCH_MAX_LINES_PER_REQUEST = 900  # max lines per batch request for OpenAI
 
@@ -75,7 +76,7 @@ def make_and_save_batch(client:OpenAI, batch_num:int, lines: List[dict], batched
     # Create batch
     batch = client.batches.create(
         input_file_id = up.id,
-        endpoint      = ENDPOINT,          # must match the "url" used in each line
+        endpoint      = BATCH_ENDPOINT,          # must match the "url" used in each line
         completion_window = COMPLETION_WINDOW
     )
     batch_id = batch.id
@@ -94,7 +95,7 @@ def generate_request(full_text, request_id, type, dump=True):
         return {
             "custom_id": request_id,             # must be unique (string)
             "method": "POST",
-            "url": ENDPOINT,
+            "url": REQUEST_ENDPOINT,
             "body": {
                 "model": MODEL,
                 "temperature": TEMPERATURE,

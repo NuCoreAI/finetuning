@@ -2,7 +2,8 @@
 
 
 from openai import OpenAI
-import json, os, tempfile
+import json 
+from datetime import datetime
 from pathlib import Path
 from nucore import NuCore
 from util import get_data_directory
@@ -41,7 +42,7 @@ def is_archived(batch)->bool:
     except Exception as ex:
         return False
 
-def list_batches(client:OpenAI, include_archives:bool):
+def list_batches(client:OpenAI, include_archives:bool, include_cancels:bool=False, include_fails:bool=False):
     """
     List all batches and their statuses.
     """
@@ -55,6 +56,10 @@ def list_batches(client:OpenAI, include_archives:bool):
             if not include_archives:
                 if is_archived(batch):
                     continue
+            if batch.status == "failed" and not include_fails:
+                continue
+            if batch.status == "cancelled" and not include_cancels:
+                continue
             yield batch
         # The SDK returns items sorted newest→oldest; use last id as cursor
         after = data[-1].id
@@ -76,7 +81,9 @@ def archive_batches(client:OpenAI, path:Path):
     for batch in list_batches(client, True):
         try:
             archives[batch.id]={
-                "status":"archived"
+                "status":"archived",
+                "batch_status":batch.status,
+                "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             }
         except Exception as e:
             print(f"Error archiving batch {batch.id}: {e}")
@@ -110,32 +117,44 @@ def download_result(client:OpenAI, batch, path):
         else:
             raise ValueError("Neitehr output file id nor error_file id returned any content")
 
-        contents=[]    
+        contents=[]   
+        full_contents="" 
         #download if and only if necessary
         if not out_path.exists():  # avoid re-downloading
             try:
                 print (f"downloading {out_path} ...")
                 full_contents = client.files.content(output_file_id).text
                 out_path.write_text(full_contents, encoding="utf-8")
-                contents =  full_contents.strip().splitlines()
-                for content in contents:
-                    content = json.loads(content)
-                    samples_out_path = path / f"sample_{out_path.stem}_{content['custom_id']}.jsonl"
-                    print (f"saving {samples_out_path} ...")
-                    content = content['response']['body']['choices'][0]['message']['content']
-                    print(content)
-                    content = json.loads(content.strip())
-                    samples_out_path.write_text(content.strip(), encoding="utf-8")
             except Exception as e:
                 print(f"[warn] failed to download output for {batch.id}: {e}")
                 contents = [] 
                 error = True
         else:
             print (f"{out_path} already downloaded; reading the file and returning contents ...")
-            contents = out_path.read_text(encoding="utf-8").strip().splitlines()
+            full_contents = out_path.read_text(encoding="utf-8")
+        
+        contents =  full_contents.strip().splitlines()
+        for content in contents:
+            content = json.loads(content)
+            samples_out_path = path / f"sample_{out_path.stem}_{content['custom_id']}.jsonl"
+            print (f"saving {samples_out_path} ...")
+            try:
+                content = content['response']['body']['choices'][0]['message']['content']
+                print(content)
+                content = json.loads(content.strip())
+                with open(samples_out_path, 'a') as fp:
+                    json.dump(content, fp)
+                    fp.write('\n')
+            except Exception as ex:
+                print(f"failed parsing content {ex}")
+                continue
+        
         return error, contents
     except Exception as ex:
-        print(f"Error downloading {batch.id}. Skipping: {e}")
+        print(f"Error downloading {batch.id}. Skipping: {ex}")
+        return None, None
+
+
 
 def download_results(client:OpenAI, path:Path):
     outputs_all: List[str] = []
