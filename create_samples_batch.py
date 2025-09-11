@@ -103,7 +103,7 @@ def generate_request(full_text, request_id, type, dump=True):
                     {"role": "system", "content": system_prompt},
                 ],
             # add any other Chat Completions params you need:
-            # "response_format": {"type": "json_object"}
+            "response_format": {"type": "json_object"}
             }
         }
     return None

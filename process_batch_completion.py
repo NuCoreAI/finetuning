@@ -140,11 +140,35 @@ def download_result(client:OpenAI, batch, path):
             print (f"saving {samples_out_path} ...")
             try:
                 content = content['response']['body']['choices'][0]['message']['content']
-                print(content)
-                content = json.loads(content.strip())
-                with open(samples_out_path, 'a') as fp:
-                    json.dump(content, fp)
-                    fp.write('\n')
+                attempt=0
+                failed=False
+                while True:
+                    try:
+                        print(content)
+                        content = json.loads(content.strip())
+                        break
+                    except json.JSONDecodeError as ex:
+                        if "Extra data" in str(ex):
+                            attempt+=1
+                            if attempt >= 2:
+                                print(f"failed loading content; giving up after {attempt} ")
+                                failed=True
+                                error=True
+                                break
+                            print(f"failed loading content {ex} ... fix attempt {attempt}")
+                            # remove the character at the error position
+                            pos = ex.pos
+                            content = content[:pos] + content[pos+1:]
+                        else:
+                            print(f"json load failed but we cannot fix it ... {ex}")
+                            failed=True
+                            error=True
+                            break
+                if not failed:
+                    print(f"success!")
+                    with open(samples_out_path, 'a') as fp:
+                        json.dump(content, fp)
+                        fp.write('\n')
             except Exception as ex:
                 print(f"failed parsing content {ex}")
                 continue
