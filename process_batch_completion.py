@@ -222,14 +222,18 @@ if __name__ == "__main__":
     REFERENCE_DIR = Path(get_data_directory("customer_data", None))
     BATCHED_REQUESTS_DIR = Path(get_data_directory("datasets", "batched-requests"))
     OUTPUT_DIR = Path(get_data_directory("datasets", "batched-samples"))
-    ARCHIVED_FILE = BATCHED_REQUESTS_DIR/"archives.json"
+    ARCHIVED_FILE = Path(get_data_directory("datasets","archives.json"))
 
     if not ARCHIVED_FILE.exists():
         with open(ARCHIVED_FILE, 'w') as fp:
             json.dump(archives, fp)
     else:
         with open(ARCHIVED_FILE, 'r') as fp:
-            archives = json.load(fp)
+            try:
+                archives = json.load(fp)
+            except Exception as ex:
+                print(f"failed loading archives file {ARCHIVED_FILE}: {ex}")
+                archives={}
 
 
     output_path = Path(args.output_path) if args.output_path else OUTPUT_DIR
