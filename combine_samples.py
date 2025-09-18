@@ -14,33 +14,30 @@ from pathlib import Path
 if __name__ == "__main__":
     argparse = __import__('argparse')
     parser = argparse.ArgumentParser(description="Combine OpenPipe fine-tuning samples.")
-    parser.add_argument("--input_path", type=str, help="Path to the directory that holds samples in jsonl format.")
-    parser.add_argument("--output_file", type=str, help="Path to the output file. If not specified, defaults to input directory name with '_combined.jsonl' suffix.")
+    parser.add_argument("--input_path", default="batched-samples", type=str, help="Path to the directory that holds samples in jsonl format.")
     args = parser.parse_args()
 
-    INPUT_DIR = Path(get_data_directory("datasets", "devices"))
-
-    input_path = Path(args.input_path) if args.input_path else INPUT_DIR
+    input_path = Path(get_data_directory("datasets", args.input_path))
     if not input_path.exists() or not input_path.is_dir():
         raise ValueError(f"Input path {input_path} does not exist or is not a directory.")
+    
+    sample_types = ["commands", "properties", "routines"]
 
-    output_file = Path(args.output_file) if args.output_file else (input_path / f"{input_path.name}_combined.jsonl")
-    if not output_file.parent.exists():
-        raise ValueError(f"Output directory {output_file.parent} does not exist. Please create it first.")
+    for type in sample_types:
+        output_file = input_path / f"{type.upper()}_combined.jsonl"
+        #now traverse the input directory and combine all jsonl files into a single file
+        jsonl_data = []
+        for jsonl_file in input_path.glob(f"sample_batch*_{type}.jsonl"):
+            print(f"Processing file: {jsonl_file.name}")
+            with jsonl_file.open('r', encoding='utf-8') as f:
+                for line in f:
+                    try:
+                        jsonl_data.append(json.loads(line))
+                    except json.JSONDecodeError as e:
+                        print(f"Error decoding JSON from {jsonl_file.name}: {e}")   
 
-    #now traverse the input directory and combine all jsonl files into a single file
-    jsonl_data = []
-    for jsonl_file in input_path.glob("*.jsonl"):
-        print(f"Processing file: {jsonl_file.name}")
-        with jsonl_file.open('r', encoding='utf-8') as f:
-            for line in f:
-                try:
-                    jsonl_data.append(json.loads(line))
-                except json.JSONDecodeError as e:
-                    print(f"Error decoding JSON from {jsonl_file.name}: {e}")   
+        with output_file.open("w", encoding='utf-8') as f:
+            for item in jsonl_data:
+                f.write(json.dumps(item) + "\n")
 
-    with output_file.open("w", encoding='utf-8') as f:
-        for item in jsonl_data:
-            f.write(json.dumps(item) + "\n")
-
-    print(f"✅ {len(jsonl_data)} entries saved to {output_file}")  
+        print(f"✅ {len(jsonl_data)} entries saved to {output_file}")  
