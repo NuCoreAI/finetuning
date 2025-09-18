@@ -23,7 +23,7 @@
             "program": "create_samples_batch.py",
             "console": "integratedTerminal",
             "args": [
-               "--types= commands",
+               "--types= routines",
             ],
             "justMyCode": false
         },
@@ -69,6 +69,14 @@
             "args": [
                "--operation= process"
             ],
+            "justMyCode": false
+        },
+        {
+            "name": "check samples", 
+            "type": "debugpy",
+            "request": "launch",
+            "program": "check_samples.py",
+            "console": "integratedTerminal",
             "justMyCode": false
         },
         {

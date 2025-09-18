@@ -92,7 +92,7 @@ def archive_batches(client:OpenAI, path:Path):
         json.dump(archives, fp)
 
 
-def download_result(client:OpenAI, batch, path):
+def download_result(client:OpenAI, batch, path, is_error:bool):
     """Download a Files API asset to disk."""
     try:
 #        row = [
@@ -106,16 +106,18 @@ def download_result(client:OpenAI, batch, path):
 #        ]
         out_path=""
         output_file_id=""
-        error=False
-        if getattr(batch, "output_file_id", None):
-            out_path = path / f"{batch.id}_output.jsonl"
-            output_file_id=batch.output_file_id
-        elif getattr(batch, "error_file_id", None):
-            out_path = path / f"{batch.id}_error.jsonl"
-            output_file_id=batch.error_file_id
-            error=True
+        if is_error:
+            if getattr(batch, "error_file_id", None):
+                out_path = path / f"{batch.id}_error.jsonl"
+                output_file_id=batch.error_file_id
+            else:
+                raise ValueError("no error file found for batch {batch.id}...")
         else:
-            raise ValueError("Neitehr output file id nor error_file id returned any content")
+            if getattr(batch, "output_file_id", None):
+                out_path = path / f"{batch.id}_output.jsonl"
+                output_file_id=batch.output_file_id
+            else:
+                raise ValueError("no output file found for batch {batch.id}...")
 
         contents=[]   
         full_contents="" 
@@ -128,55 +130,38 @@ def download_result(client:OpenAI, batch, path):
             except Exception as e:
                 print(f"[warn] failed to download output for {batch.id}: {e}")
                 contents = [] 
-                error = True
         else:
             print (f"{out_path} already downloaded; reading the file and returning contents ...")
             full_contents = out_path.read_text(encoding="utf-8")
         
         contents =  full_contents.strip().splitlines()
+        if is_error:
+            return contents
+
         for content in contents:
             content = json.loads(content)
             samples_out_path = path / f"sample_{out_path.stem}_{content['custom_id']}.jsonl"
             print (f"saving {samples_out_path} ...")
             try:
                 content = content['response']['body']['choices'][0]['message']['content']
-                attempt=0
-                failed=False
-                while True:
-                    try:
-                        print(content)
-                        content = json.loads(content.strip())
-                        break
-                    except json.JSONDecodeError as ex:
-                        if "Extra data" in str(ex):
-                            attempt+=1
-                            if attempt >= 2:
-                                print(f"failed loading content; giving up after {attempt} ")
-                                failed=True
-                                error=True
-                                break
-                            print(f"failed loading content {ex} ... fix attempt {attempt}")
-                            # remove the character at the error position
-                            pos = ex.pos
-                            content = content[:pos] + content[pos+1:]
-                        else:
-                            print(f"json load failed but we cannot fix it ... {ex}")
-                            failed=True
-                            error=True
-                            break
-                if not failed:
-                    print(f"success!")
-                    with open(samples_out_path, 'a') as fp:
-                        json.dump(content, fp)
-                        fp.write('\n')
+                print(content)
+                content = json.loads(content.strip())
             except Exception as ex:
-                print(f"failed parsing content {ex}")
+                print(f"failed loading content {ex} ... ")
                 continue
-        
-        return error, contents
+            print(f"success!")
+            with open(samples_out_path, 'a') as fp:
+                try:
+                    json.dump(content, fp)
+                    fp.write('\n')
+                except Exception as ex:
+                    print(f"failed saving content {ex} to {samples_out_path} ... ")
+                    continue
+
+        return contents
     except Exception as ex:
         print(f"Error downloading {batch.id}. Skipping: {ex}")
-        return None, None
+        return None
 
 
 
@@ -189,12 +174,12 @@ def download_results(client:OpenAI, path:Path):
                 print(f"{batch.id} is cancelled; ignoring ...")
                 continue
             if batch.status == "completed":
-                error, contents = download_result(client, batch, path)
+                contents = download_result(client, batch, path, False)
                 if contents:
-                    if error:
-                        errors_all.extend(contents)
-                    else:
-                        outputs_all.extend(contents)
+                    outputs_all.extend(contents)
+                errors = download_result(client, batch, path, True)
+                if errors:
+                    errors_all.extend(errors)
             else:
                 print(f"{batch.id} is not complete (status == {batch.status})... ignoring")
     except Exception as ex:

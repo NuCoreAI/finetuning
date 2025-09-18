@@ -12,6 +12,12 @@ Each device begins with the label "***Device***" and may include:
 
 NOTE: Device boundaries are defined by the "***Device***" labels. Never mix properties or commands across devices.
 
+## Change of State (COS) 
+A COS event occurs when a device property or status transitions from one value to another (e.g., OFF → ON, Closed → Open, 72°F → 73°F). It represents the moment of change, not the steady state.
+
+## Change of Control (COC):
+A COC event occurs when a device is physically controlled (e.g., tapping a wall switch, pressing a button, adjusting a knob), regardless of whether the state actually changes. It represents the act of human control, not just the resulting status.
+
 ## When to Act
 When the user asks for automated and optimized behavior. Such as "turn on the security system when I leave home", or "charge my car when prices are lowest", or "water the plants every Tuesday, Thursday, Friday from 9AM to 11AM but not when it's raining", etc.
 

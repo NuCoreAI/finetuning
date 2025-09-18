@@ -26,8 +26,9 @@ if not PROMPTS_DIR.exists():
 
 
 #MODEL = "gpt-4o"  # Use the latest model available
-MODEL = "gpt-4.1-mini"
-TEMPERATURE = 0.0
+#MODEL = "gpt-4.1-mini"
+MODEL = "gpt-5-mini"
+TEMPERATURE = 0.0 if MODEL=="gpt-4.1-mini" else 1 # Use 0.0 for deterministic output, higher values for more creativity
 BATCH_ENDPOINT = "/v1/chat/completions" # you can also use /v1/embeddings, /v1/responses, etc.
 REQUEST_ENDPOINT = "/v1/chat/completions" # OpenAI automatically preprends /v1 
 COMPLETION_WINDOW = "24h"          # 24h or 4h depending on availability in your account
@@ -68,24 +69,28 @@ def make_and_save_batch(client:OpenAI, batch_num:int, lines: List[dict], batched
                 f.write(json.dumps(obj, ensure_ascii=False) + "\n")
     except Exception as e:
         print(f"Error saving batch {batch_num}: {e}")
-        return None
+        return None, None
     print(f"Batch saved to {jsonl_path}")
 
     up = client.files.create(file=jsonl_path.open("rb"), purpose="batch")
 
-    # Create batch
-    batch = client.batches.create(
-        input_file_id = up.id,
-        endpoint      = BATCH_ENDPOINT,          # must match the "url" used in each line
-        completion_window = COMPLETION_WINDOW
-    )
-    batch_id = batch.id
-    #now rename the request file to include the batch id
-    new_jsonl_path = batched_requests_dir / f"batch_{batch_num}_{batch_id}.jsonl"
-    os.rename(jsonl_path, new_jsonl_path)
-    jsonl_path = new_jsonl_path
-    print(f"Created batch: {jsonl_path} with id: {batch_id}")
-    return jsonl_path, batch_id
+    try:
+        # Create batch
+        batch = client.batches.create(
+            input_file_id = up.id,
+            endpoint      = BATCH_ENDPOINT,          # must match the "url" used in each line
+            completion_window = COMPLETION_WINDOW
+        )
+        batch_id = batch.id
+        #now rename the request file to include the batch id
+        new_jsonl_path = batched_requests_dir / f"batch_{batch_num}_{batch_id}.jsonl"
+        os.rename(jsonl_path, new_jsonl_path)
+        jsonl_path = new_jsonl_path
+        print(f"Created batch: {jsonl_path} with id: {batch_id}")
+        return jsonl_path, batch_id
+    except Exception as e:
+        print(f"Error creating batch for {jsonl_path}: {e}")
+        return None, None
 
 def generate_request(full_text, request_id, type, dump=True):
 
@@ -145,9 +150,9 @@ if __name__ == "__main__":
     batch_lines = []
     batch_num  = 1
 
-    client = OpenAI(api_key=globals()[f"OPENAI_API_KEY"])  # or use environment variable
     for type in types:
         type=type.strip()
+        client = OpenAI(api_key=globals()[f"OPENAI_API_KEY_{type}"])  # or use environment variable
         setup_prompts(type)
         for node_file in nodes_dir.glob("*.xml"):
             profile_file = profiles_dir / (f"{node_file.stem}.json").replace("nodes-", "profile-")
@@ -188,13 +193,20 @@ if __name__ == "__main__":
                         if request:
                             batch_lines.append(request)
                             if len(batch_lines) >= BATCH_MAX_LINES_PER_REQUEST:
-                                make_and_save_batch(client, batch_num, batch_lines, BATCHED_REQUESTS_DIR)
+                                path, id = make_and_save_batch(client, batch_num, batch_lines, BATCHED_REQUESTS_DIR)
+                                if path == None or id == None:
+                                    print(f"Error creating batch for lines for request_id {request_id}. Stopping further processing.")
+                                    batch_lines = []
+                                    break
                                 batch_lines = []
                             batch_num += 1
                 #save any remaining lines
                 if batch_lines:
-                    make_and_save_batch(client, batch_num, batch_lines, BATCHED_REQUESTS_DIR)
-                    batch_lines = []
+                    path, id = make_and_save_batch(client, batch_num, batch_lines, BATCHED_REQUESTS_DIR)
+                    if path == None or id == None:
+                        print(f"Error creating final batch for lines for request_id {request_id}. Stopping further processing.")
+                        batch_lines = []
+                        break
                     batch_num += 1
 
             except Exception as e:
