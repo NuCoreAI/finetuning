@@ -15,16 +15,21 @@ if __name__ == "__main__":
     argparse = __import__('argparse')
     parser = argparse.ArgumentParser(description="Combine OpenPipe fine-tuning samples.")
     parser.add_argument("--input_path", default="batched-samples", type=str, help="Path to the directory that holds samples in jsonl format.")
+    parser.add_argument("--output_path", default="samples", type=str, help="Path to the directory that holds samples in jsonl format.")
     args = parser.parse_args()
 
     input_path = Path(get_data_directory("datasets", args.input_path))
     if not input_path.exists() or not input_path.is_dir():
         raise ValueError(f"Input path {input_path} does not exist or is not a directory.")
-    
+
+    output_path = Path(get_data_directory("datasets", args.output_path))
+    if not output_path.exists() or not output_path.is_dir():
+        raise ValueError(f"Output path {output_path} does not exist or is not a directory.")
+
     sample_types = ["commands", "properties", "routines"]
 
     for type in sample_types:
-        output_file = input_path / f"{type.upper()}_combined.jsonl"
+        output_file = output_path / f"{type.upper()}_combined.jsonl"
         #now traverse the input directory and combine all jsonl files into a single file
         jsonl_data = []
         for jsonl_file in input_path.glob(f"sample_batch*_{type}.jsonl"):
