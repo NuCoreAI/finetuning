@@ -213,4 +213,5 @@ secrets/
 customer_data/
 datasets/batched-samples/
 datasets/batched-requests/
+datasets/errors/
 datasets/samples/

@@ -2,6 +2,7 @@
 #This way, we do not use unnecessary tokens during inference.
 
 
+from random import random
 from openai import OpenAI
 import json, os, tempfile
 from pathlib import Path
@@ -38,7 +39,7 @@ BATCH_MAX_LINES_PER_REQUEST = 900  # max lines per batch request for OpenAI
 TRAIN_PROMPT = ""
 RUN_PROMPT = ""
 
-def setup_prompts(type: Literal["properties", "commands", "routines", "general"]):
+def setup_prompts(type: Literal["properties", "commands", "routines", "nucore"]):
     global TRAIN_PROMPT, RUN_PROMPT
     TRAIN_PROMPT = ""
     RUN_PROMPT = ""
@@ -155,6 +156,31 @@ if __name__ == "__main__":
         type=type.strip()
         client = OpenAI(api_key=globals()[f"OPENAI_API_KEY_{type}"])  # or use environment variable
         setup_prompts(type)
+
+        if type == "nucore":
+            request_id = f"nucore_generic_{random.randint(1000,9999)}"
+            request = generate_request(" ", request_id, type, dump=True)
+            if request:
+                batch_lines.append(request)
+                if len(batch_lines) >= BATCH_MAX_LINES_PER_REQUEST:
+                    path, id = make_and_save_batch(client, batch_num, batch_lines, BATCHED_REQUESTS_DIR)
+                    if path == None or id == None:
+                        print(f"Error creating batch for lines for request_id {request_id}. Stopping further processing.")
+                        batch_lines = []
+                        break
+                    batch_lines = []
+                    batch_num += 1
+                #save any remaining lines
+                if batch_lines:
+                    path, id = make_and_save_batch(client, batch_num, batch_lines, BATCHED_REQUESTS_DIR)
+                    if path == None or id == None:
+                        print(f"Error creating final batch for lines for request_id {request_id}. Stopping further processing.")
+                        batch_lines = []
+                    else:
+                        batch_num += 1
+                batch_lines = []
+            exit(0)
+
         for node_file in nodes_dir.glob("*.xml"):
             profile_file = profiles_dir / (f"{node_file.stem}.json").replace("nodes-", "profile-")
             out_file = f"{node_file.stem}_finetune"

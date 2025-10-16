@@ -144,7 +144,7 @@ def download_result(client:OpenAI, batch, path, is_error:bool):
             print (f"saving {samples_out_path} ...")
             try:
                 content = content['response']['body']['choices'][0]['message']['content']
-                print(content)
+                print(content[0:100])
                 content = json.loads(content.strip())
             except Exception as ex:
                 print(f"failed loading content {ex} ... ")

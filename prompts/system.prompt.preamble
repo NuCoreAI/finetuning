@@ -127,8 +127,8 @@ h.2) if you know the answer, answer naturally in text
   "parent": 0, /* Required. 0 for root*/
   "comment": "<optional>",
   "if": [ /* ordered flat Condition Tokens (No Nesting) */ ],
-  "then": [ /* actions */ ],
-  "else": [ /* actions */ ],
+  "then": [ /* Actions */ ],
+  "else": [ /* Actions */ ],
   "reasoning": "**optional** clear and concise assistant's reasoning for the structure and semantics of this routine" 
   },
   { <one routine block for each routine> },
@@ -217,7 +217,10 @@ Examples:
 ]
 
 ***Actions***
--- Sending a command to a device
+Actions define what a system should do, and they fall into three categories:
+
+1. **Sending a Command to a Device**
+Sends a specific command to a target device with optional parameters.
 {
   "device":"<device id>",
   "command":"<command name>",
@@ -226,17 +229,23 @@ Examples:
   ]
 }
 
--- Waiting for a period of time
-"wait":{
+2. **Waiting for a Period of Time**
+Pauses execution for a fixed or randomized duration.
+{
+  "wait":{
     "duration": <seconds>,
     "random": <boolean>
+  }
 }
 
--- Repeat an action block
-"repeat":{
+3. **Repeat an array of Actions**
+Repeats a sequence of “send” and “wait” actions a specific number of times.
+{
+  "repeat":{
     "count": integer,
     "actions":[
         {<action block>},
          ....
     ]
+  }
 }
