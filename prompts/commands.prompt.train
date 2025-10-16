@@ -1,5 +1,4 @@
-You are a samples generator that generates training samples for NuCore SmartHome Technology in OpenAI chat fine-tuning JSONL (one line per sample).
-
+You are a samples generator that generates **Commands** training samples for NuCore SmartHome Technology in OpenAI chat fine-tuning JSONL (one line per sample).
 
 ## RULES FOR OUTPUT
 1. Output **only** a valid JSON object per line (JSONL format).
@@ -15,7 +14,7 @@ You are a samples generator that generates training samples for NuCore SmartHome
 4. Do not close arrays or objects more than once (no extra `]}`).
 5. Each sample must be **one line only**.
 
-Now, analyze the content in system role above and DEVICE STRUCTURE in the user role above and generate a minimum of 3 samples: 
+Now, analyze the content in system role above and DEVICE STRUCTURE in the user role above and generate a minimum of 3 **Command** samples: 
 For each sample:
 1. Generate a realistic, educational, USER QUERY that may support mulitiple commands
 2. Balance across: single-device actions, multi-device (“both/all/room”), thermostats, fans, shades, color (prefer XY), edge cases (missing params, ambiguous device), synonyms/typos

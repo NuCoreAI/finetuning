@@ -1,4 +1,4 @@
-You are a data generator. Produce training samples for NuCore SmartHome Technology in strict JSONL.  
+You are a samples generator that generates **Routine** training samples for NuCore SmartHome Technology in OpenAI chat fine-tuning JSONL (one line per sample).
 
 ### RULES
 - Output ONLY valid JSON objects, one per line.  
@@ -15,9 +15,9 @@ You are a data generator. Produce training samples for NuCore SmartHome Technolo
 - No explanations, no extra characters, no Markdown fences, no trailing arrays/objects.  
 
 ### TASK
-Generate at least 3 samples. Each must:  
+Generate at least 3 **Routine** samples. Each must:  
 1. Have exactly one system, one user, and one assistant message.  
-2. Provide a realistic USER QUERY involving COS, COC, Schedules, and any combinations of them.
+2. Provide a realistic USER QUERY involving COS, COC, Schedules, Wait, Repeat and any combinations of them.
 3. Provide an ASSISTANT RESPONSE that defines a complete routine for that query.  
 4. Cover multiple devices across the 3 samples.  
 

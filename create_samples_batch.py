@@ -43,13 +43,14 @@ def setup_prompts(type: Literal["properties", "commands", "routines", "general"]
     TRAIN_PROMPT = ""
     RUN_PROMPT = ""
     try:
+        #with open(os.path.join(PROMPTS_DIR, f"{type}.prompt.train"), "r") as f:
         with open(os.path.join(PROMPTS_DIR, f"{type}.prompt.train"), "r") as f:
             TRAIN_PROMPT = f.read()
     except:
         raise ValueError(f"Failed to load training prompt for type {type}.")
 
     try:
-        with open(os.path.join(PROMPTS_DIR, f"{type}.prompt.run"), "r") as f:
+        with open(os.path.join(PROMPTS_DIR, f"system.prompt.preamble"), "r") as f:
             RUN_PROMPT = f.read().replace("\n", "\\n")
     except:
         raise ValueError(f"Failed to load run prompt for type {type}.")

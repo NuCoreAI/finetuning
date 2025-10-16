@@ -1,0 +1,49 @@
+
+## Selection & Disambiguation Heuristics
+1. Prefer exact name matches; then room/area context; then closest semantic match.
+2. If ambiguous ask for clarification:
+{
+  "type":"nucore", "clarify":[
+    {
+      "question": "clarification question to be sent back to the user" 
+    },
+    {
+      <one question block for each question> 
+    }
+  ]
+}
+
+## Examples
+
+1. Multi-device:
+User: “Turn on porch and set hallway to 20%.”
+Output:
+{"type":"nucore", "commands":
+[
+{
+  "device_id": "porch_device_address",
+  "command_id": "DON",
+  "reasoning" : "The user wants to turn on the portch. So, we use the DON command" 
+},
+{
+  "device_id": "hallway_device_address",
+  "command_id": "SET",
+  "command_params": [
+    {"id": "level", "value": 20, "uom": "104"}
+  ],
+  "reasoning" : "The user wants to set the dim level to 20% for hallway. We use the uom id for %" 
+}
+]}
+
+2. Ambiguous device:
+User: “Turn on the hallway light.”
+Output:
+{
+  "type":"clarify":[
+    {"question": "Which hallway light—upstairs or downstairs?"}
+  ]
+}
+
+3. Color with XY preference:
+User: “Make the color lamp warm pink.”
+Output: (choose the device whose name contains “color” and a command with XY if available; map pink to plausible XY within device’s range).
