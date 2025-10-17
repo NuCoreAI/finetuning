@@ -9,10 +9,10 @@ then
 	exit 1 
 fi
 
-./replace_text_in_samples.sh "$1" "$2" '"name of ambiguous event 1}' '"name of ambiguous event 1"}'
-./replace_text_in_samples.sh "$1" "$2" '"name of ambiguous event 2}' '"name of ambiguous event 2"}'
-./replace_text_in_samples.sh "$1" "$2" '"name of possible device 1}' '"name of possible device 1"}'
-./replace_text_in_samples.sh "$1" "$2" '"name of possible device 2}' '"name of possible device 2"}'
+./replace_text_in_samples.sh "$1" "$2" '"name of ambiguous event 1"}' '"name of ambiguous event 1\\"}'
+./replace_text_in_samples.sh "$1" "$2" '"name of ambiguous event 2"}' '"name of ambiguous event 2\\"}'
+./replace_text_in_samples.sh "$1" "$2" '"name of possible device 1"}' '"name of possible device 1\\"}'
+./replace_text_in_samples.sh "$1" "$2" '"name of possible device 2"}' '"name of possible device 2\\"}'
 ./replace_text_in_samples.sh "$1" "$2" 'contextal' 'contextual'
 ./replace_text_in_samples.sh "$1" "$2" 'Aways' 'Always'
 ./replace_text_in_samples.sh "$1" "$2" '=! (is not)' '!= (is not), is, is not' 
