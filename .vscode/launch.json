@@ -96,7 +96,10 @@
             "request": "launch",
             "program": "combine_samples.py",
             "console": "integratedTerminal",
-            "justMyCode": false
+            "justMyCode": false,
+            "args" : [
+               "--all=true"
+            ],
         }
     ]
 }

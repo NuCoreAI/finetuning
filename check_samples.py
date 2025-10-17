@@ -49,7 +49,8 @@ def check_sample_structure(sample: dict) -> bool:
             print(f"Third element is not a assistant message: {assistant}")
             return False
 
-        try: 
+        try:
+             
             #now let's check the content for each message
             system_content = system.get('content', None).strip()
             user_content = user.get('content', None).strip()

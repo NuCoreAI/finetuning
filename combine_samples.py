@@ -16,6 +16,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Combine OpenPipe fine-tuning samples.")
     parser.add_argument("--input_path", default="batched-samples", type=str, help="Path to the directory that holds samples in jsonl format.")
     parser.add_argument("--output_path", default="samples", type=str, help="Path to the directory that holds samples in jsonl format.")
+    parser.add_argument("--all", default="false", type=str, help="Combine all samples into a single file.")
     args = parser.parse_args()
 
     input_path = Path(get_data_directory("datasets", args.input_path))
@@ -25,8 +26,13 @@ if __name__ == "__main__":
     output_path = Path(get_data_directory("datasets", args.output_path))
     if not output_path.exists() or not output_path.is_dir():
         raise ValueError(f"Output path {output_path} does not exist or is not a directory.")
+    
+    all = args.all.lower() == "true"
 
     sample_types = ["commands", "properties", "routines"]
+    i=0; 
+    if all:
+        all_output_file = output_path / f"ALL_combined.jsonl"
 
     for type in sample_types:
         output_file = output_path / f"{type.upper()}_combined.jsonl"
@@ -37,12 +43,27 @@ if __name__ == "__main__":
             with jsonl_file.open('r', encoding='utf-8') as f:
                 for line in f:
                     try:
-                        jsonl_data.append(json.loads(line))
+                        jl = json.loads(line)
+                        messages = jl.get("messages", [])
+                        for message in messages:
+                            if "name" in message:
+                                message['name'] = 'system' if message['role'] == 'system' else 'user' if message['role'] == 'user' else 'assistant'
+
+                            #remove id
+                            message.pop('id', None)
+                        jsonl_data.append(jl)
                     except json.JSONDecodeError as e:
                         print(f"Error decoding JSON from {jsonl_file.name}: {e}")   
 
         with output_file.open("w", encoding='utf-8') as f:
             for item in jsonl_data:
                 f.write(json.dumps(item) + "\n")
-
         print(f"✅ {len(jsonl_data)} entries saved to {output_file}")  
+        
+        if all: 
+            with all_output_file.open("a", encoding='utf-8') as f:
+                for item in jsonl_data:
+                    f.write(json.dumps(item) + "\n")
+                    i+=1
+    if all:
+        print(f"✅ {i} total entries saved to {all_output_file}")
