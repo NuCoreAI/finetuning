@@ -20,7 +20,19 @@ Customer data is not shared for privacy reasons. It's in a directory call custom
 4. Export Weights using Merged BF16 - Wait for completion
 5. Download weights into a directory
 6. Convert into hugging face format using llama.cpp
+```shell
+<activate a .venv environment>
+cd <to llama.cpp directory>
+export VERSION=12
+export MODEL_PATH=~/workspace/nucore/models/finetuned/nucore/$VERSION
+python3 convert_hf_to_gguf.py $MODEL_PATH/data --outfile $MODEL_PATH/nucore.$VERSION.gguf
+```
 7. Quantize to GGUF Q4
+```shell
+build.cuda/bin/llama-quantize $MODEL_PATH/nucore.$VERSION.gguf nucore.$VERSION.q4m.gguf Q4_K
+
+```
+
 
 ## GPT 4.1
 1. Upload to [OpenAI Storage](https://platform.openai.com/storage/files) as a finetuning data source
