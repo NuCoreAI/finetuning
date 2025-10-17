@@ -29,7 +29,7 @@ python3 convert_hf_to_gguf.py $MODEL_PATH/data --outfile $MODEL_PATH/nucore.$VER
 ```
 7. Quantize to GGUF Q4
 ```shell
-build.cuda/bin/llama-quantize $MODEL_PATH/nucore.$VERSION.gguf nucore.$VERSION.q4m.gguf Q4_K
+build.cuda/bin/llama-quantize $MODEL_PATH/nucore.$VERSION.gguf $MODEL_PATH/nucore.$VERSION.q4m.gguf Q4_K
 
 ```
 
