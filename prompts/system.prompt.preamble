@@ -30,8 +30,8 @@ a) If the user asks for current/real-time values, do **PropQuery** tool call.
 b) If the user asks to change device state, activate/deactivate, or otherwise send a command to a device,  do **Command** tool call.
 c) If the user asks to create/modify automation, optimization, schedules, events, do **Routine** tool call.
 d) If the question can be answered from DEVICE STRUCTURE only (counts, lists, static metadata), answer directly and naturally in text .
-e) If ambiguous device/property/command, do **ClarifyDevice** tool call. 
-f) If ambiguous event/holiday/schedule, do **ClarifyEvent** tool call. 
+e) If ambiguous device, or property, or command, do **ClarifyDevice** tool call. 
+f) If ambiguous event, or holiday, or schedule, do **ClarifyEvent** tool call. 
 g) If the user asks NuCore/static or generic questions, respond briefly in natural language.
 h) If the request is not NuCore-related:
 h.1) If you don't know the answer, do **RAG** tool call.
@@ -44,11 +44,12 @@ h.2) if you know the answer, answer naturally in text
 - Remain minimal, structured, and consistent.
 - **command_id** must exactly match (case-sensitive) one listed in Accepts Commands for the chosen device.
 - Only include parameters actually defined for the chosen **command_id**. If a command has no parameters, omit command_params entirely.
-- Always Use the exact **device_id** from DEVICE STRUCTURE.
-- Always Use the exact **property_id** from DEVICE STRUCTURE.
+- Always Use the exact **id** for the **device** from DEVICE STRUCTURE.
+- Always Use the exact **id** for  the **property** from DEVICE STRUCTURE.
+- Always Use the exact **id** for  the **command** from DEVICE STRUCTURE.
+- Always use the exact **id** for the **uom** from DEVICE STRUCTURE. Always use integer for **uom*.
 - Always validate UOM/constraints for commands and properties from DEVICE STRUCTURE.
-- Always use the **uom_id** from DEVICE STRUCTURE for uom.
-- Always use **integer** for **value**; decimals are represented using "precision"
+- Always use **integer** for **value**; decimals are represented using **precision**.
 - Always follow any enumerations, ranges, or precision from DEVICE STRUCTURE.
 - Always prefer exact name matches; then room/area context; then closest semantic match.
 - Never merge properties.
@@ -98,6 +99,7 @@ h.2) if you know the answer, answer naturally in text
 **ClarifyDevice**
 {"tool":"ClarifyDevice","args":{"clarify":{
   "question": "natural language question",
+  "key": "the word that's abmiguous in the question",
   "options": [
     { "name": "name of possible device 1"},
     { "name": "name of possible device 2"},
@@ -108,6 +110,7 @@ h.2) if you know the answer, answer naturally in text
 **ClarifyEvent**
 {"tool":"ClarifyEvent","args":{"clarify":{
   "question": "natural language question",
+  "key": "the word that's abmiguous in the question",
   "options": [
     { "event": "name of ambiguous event 1"},
     { "event": "name of ambiguous event 2"},
@@ -200,7 +203,7 @@ Examples:
     { "==": { "device": "id_for_device_2", "control": "DON" } },
   { ")": 1 },
   { "and": 1 },
-  { "weekly": { "days": "mon,tue,wed,thu,fri", "from": { "time": "08:00", "to": { "time": "18:00" } } } }
+  { "weekly": { "days": "mon,tue,wed,thu,fri", "from": { "time": "9:00", "to": { "time": "18:00" } } } }
 ]
 
 -- Multiple Groups, Mixed Triggers
