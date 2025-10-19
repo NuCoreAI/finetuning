@@ -51,6 +51,11 @@ if __name__ == "__main__":
 
                             #remove id
                             message.pop('id', None)
+                            #now make sure that there's only a role and content keys in each message and remove the rest
+                            keys_to_keep = ['role', 'content', 'name']
+                            for key in list(message.keys()):
+                                if key not in keys_to_keep:
+                                    message.pop(key, None)
                         jsonl_data.append(jl)
                     except json.JSONDecodeError as e:
                         print(f"Error decoding JSON from {jsonl_file.name}: {e}")   
