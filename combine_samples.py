@@ -46,6 +46,12 @@ if __name__ == "__main__":
                         jl = json.loads(line)
                         messages = jl.get("messages", [])
                         for message in messages:
+                            if message['role'] == 'assistant':
+                                if 'clarify' in message.get('content', '').lower():
+                                    print(f"Skipping clarify message in file {jsonl_file.name}: {message['content']}")
+                                    jl=None
+                                    break
+
                             if "name" in message:
                                 message['name'] = 'system' if message['role'] == 'system' else 'user' if message['role'] == 'user' else 'assistant'
 
@@ -56,7 +62,8 @@ if __name__ == "__main__":
                             for key in list(message.keys()):
                                 if key not in keys_to_keep:
                                     message.pop(key, None)
-                        jsonl_data.append(jl)
+                        if jl:
+                            jsonl_data.append(jl)
                     except json.JSONDecodeError as e:
                         print(f"Error decoding JSON from {jsonl_file.name}: {e}")   
 
