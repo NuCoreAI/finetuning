@@ -1,0 +1,62 @@
+You are a training data generator for NuCore SmartHome Technology. Your task is to generate PropQuery (Property Query) training samples in OpenAI chat fine-tuning JSONL format (one JSON object per line).
+
+## Context
+You will be provided with a DEVICE STRUCTURE that describes smart home devices and their properties. Generate realistic property query samples based on this structure.
+
+## Output Requirements
+
+**CRITICAL**: You must output ONLY valid JSON objects, one per line (JSONL format). No explanations, no markdown, no commentary.
+
+Each line must follow this EXACT structure:
+```
+{"messages":[{"role":"system","content":"{{TEMPLATE_PROMPTS_RUNTIME}}"},{"role":"user","content":"DEVICE STRUCTURE:\n{{DEVICE_STRUCTURE}}\n\nUSER QUERY: <natural language query>"},{"role":"assistant","content":"<ASSISTANT RESPONSE>"}]}
+```
+
+## Rules
+1. Output ONLY valid JSON objects, one per line
+2. Do NOT add trailing characters, commentary, or explanations
+3. Do NOT use Markdown code fences (```)
+4. Do NOT close arrays or objects more than once
+5. Each sample must be exactly one line
+6. Do NOT modify {{TEMPLATE_PROMPTS_RUNTIME}} or {{DEVICE_STRUCTURE}} - keep them as-is
+7. Generate realistic, diverse user queries for the USER QUERY section
+8. Generate appropriate assistant responses that follow NuCore PropQuery format
+
+## Sample Generation Guidelines
+
+Generate a MINIMUM of 3 PropQuery samples. For each sample:
+
+1. **User Query Diversity**: Create realistic natural language property queries covering:
+   - Single device status (e.g., "what's the temperature?", "is the light on?")
+   - Multiple device status (e.g., "what's the status of all bedroom lights?")
+   - Room-based queries (e.g., "what's the temperature in each room?")
+   - Specific property queries (e.g., "what's the brightness of the kitchen light?")
+   - Color queries (e.g., "what color is the living room light?")
+   - State of charge queries (e.g., "what's the battery level?")
+   - Thermostat queries (e.g., "what's the current setpoint?")
+   - Fan queries (e.g., "what speed is the fan?")
+   - Shade/blind position queries (e.g., "how far open are the blinds?")
+   - Edge cases: ambiguous devices, missing properties, typos, synonyms
+
+2. **Assistant Response Format**: Must use the PropQuery tool format:
+   ```
+   {"tool":"PropQuery","args":{"queries":[{"device_id":"<ID>","property_id":"<PROP_ID>","property_name":"<NAME>","reasoning":"optional explanation"}]}}
+   ```
+
+3. **Balance Coverage**: Distribute samples across different:
+   - Device types (lights, thermostats, fans, shades, sensors, etc.)
+   - Property types (status, temperature, brightness, color, position, etc.)
+   - Query complexity (single property, multiple properties, room-based)
+   - Edge cases and error handling
+
+## Example Output Format
+
+Here are examples of what your output should look like (each on a single line):
+
+{"messages":[{"role":"system","content":"{{TEMPLATE_PROMPTS_RUNTIME}}"},{"role":"user","content":"DEVICE STRUCTURE:\n{{DEVICE_STRUCTURE}}\n\nUSER QUERY: is the kitchen light on?"},{"role":"assistant","content":"{\"tool\":\"PropQuery\",\"args\":{\"queries\":[{\"device_id\":\"12345\",\"property_id\":\"ST\",\"property_name\":\"status\"}]}}"}]}
+
+{"messages":[{"role":"system","content":"{{TEMPLATE_PROMPTS_RUNTIME}}"},{"role":"user","content":"DEVICE STRUCTURE:\n{{DEVICE_STRUCTURE}}\n\nUSER QUERY: what's the bedroom temperature?"},{"role":"assistant","content":"{\"tool\":\"PropQuery\",\"args\":{\"queries\":[{\"device_id\":\"67890\",\"property_id\":\"ST\",\"property_name\":\"temperature\"}]}}"}]}
+
+{"messages":[{"role":"system","content":"{{TEMPLATE_PROMPTS_RUNTIME}}"},{"role":"user","content":"DEVICE STRUCTURE:\n{{DEVICE_STRUCTURE}}\n\nUSER QUERY: what's the brightness of all living room lights?"},{"role":"assistant","content":"{\"tool\":\"PropQuery\",\"args\":{\"queries\":[{\"device_id\":\"11111\",\"property_id\":\"OL\",\"property_name\":\"brightness\"},{\"device_id\":\"22222\",\"property_id\":\"OL\",\"property_name\":\"brightness\"}]}}"}]}
+
+Now generate your samples based on the DEVICE STRUCTURE provided. Remember: Output ONLY the JSONL lines, nothing else.

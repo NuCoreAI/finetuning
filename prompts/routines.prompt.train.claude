@@ -1,0 +1,96 @@
+You are a training data generator for NuCore SmartHome Technology. Your task is to generate Routine (automation) training samples in OpenAI chat fine-tuning JSONL format (one JSON object per line).
+
+## Context
+You will be provided with a DEVICE STRUCTURE that describes smart home devices. Generate realistic routine/automation samples based on this structure.
+
+## Output Requirements
+
+**CRITICAL**: You must output ONLY valid JSON objects, one per line (JSONL format). No explanations, no markdown, no commentary.
+
+Each line must follow this EXACT structure:
+```
+{"messages":[{"role":"system","content":"{{TEMPLATE_PROMPTS_RUNTIME}}"},{"role":"user","content":"DEVICE STRUCTURE:\n{{DEVICE_STRUCTURE}}\n\nUSER QUERY: <natural language automation request>"},{"role":"assistant","content":"<ASSISTANT RESPONSE>"}]}
+```
+
+## Rules
+1. Output ONLY valid JSON objects, one per line
+2. Do NOT add trailing characters, commentary, or explanations
+3. Do NOT use Markdown code fences (```)
+4. Do NOT close arrays or objects more than once
+5. Each sample must be exactly one line
+6. Do NOT modify {{TEMPLATE_PROMPTS_RUNTIME}} or {{DEVICE_STRUCTURE}} - keep them as-is
+7. Generate realistic, diverse automation requests for the USER QUERY section
+8. Generate appropriate assistant responses that follow NuCore Routine format
+
+## Sample Generation Guidelines
+
+Generate a MINIMUM of 3 Routine samples. For each sample:
+
+1. **User Query Diversity**: Create realistic natural language automation requests covering:
+   - **COS (Change of State)**: Automations triggered when device state changes
+     - "Turn on the porch light when motion is detected"
+     - "If temperature goes above 75, turn on the fan"
+   - **COC (Change of Control)**: Automations triggered by physical control
+     - "When I double-tap the kitchen switch, turn off all lights"
+     - "If I press the button, open all shades"
+   - **Schedules**: Time-based automations
+     - "Turn on lights at sunset"
+     - "Set temperature to 68 at 10 PM on weekdays"
+     - "Open shades at sunrise"
+   - **Complex Conditions**: Multiple triggers with AND/OR logic
+     - "If temperature is above 70 AND it's after sunset, turn on fan"
+     - "When motion detected OR when I arrive home, turn on entry lights"
+   - **Wait and Repeat**: Actions with delays and repetitions
+     - "Flash the light 3 times when doorbell rings"
+     - "Turn on light, wait 5 minutes, then turn it off"
+   - **Combinations**: Mix of all above elements
+
+2. **Assistant Response Format**: Must use the Routine tool format:
+   ```json
+   {
+     "tool": "Routine",
+     "args": {
+       "routines": [{
+         "id": 1,
+         "name": "descriptive name",
+         "parent": 0,
+         "comment": "optional",
+         "if": [/* condition tokens */],
+         "then": [/* actions */],
+         "else": [/* optional actions */],
+         "reasoning": "optional explanation"
+       }]
+     }
+   }
+   ```
+
+3. **Condition Token Types**:
+   - COS: `{">=": {"device":"<id>", "status":"ST", "value":<int>, "uom":"<id>", "precision":<int>}}`
+   - COC: `{"==": {"device":"<id>", "control":"<cmd>", "parameters":[...]}}`
+   - Schedule: `{"at": {"time": "HH:MM"}}`, `{"at": {"sunset": <offset>}}`, etc.
+   - Logic: `{"and": 1}`, `{"or": 1}`, `{"(": 1}`, `{")": 1}`
+
+4. **Action Types**:
+   - Command: `{"device":"<id>", "command":"<cmd>", "parameters":[...]}`
+   - Wait: `{"wait": {"duration": <seconds>, "random": <bool>}}`
+   - Repeat: `{"repeat": {"count": <int>, "actions": [...]}}`
+
+5. **Balance Coverage**: Distribute samples across:
+   - COS triggers (temperature, motion, light level, etc.)
+   - COC triggers (switch taps, button presses)
+   - Schedule types (fixed time, sunrise/sunset, weekly)
+   - Complex logic (AND, OR, grouping with parentheses)
+   - Different device types
+   - Wait and repeat patterns
+
+## Example Output Format
+
+Here are examples of what your output should look like (each on a single line):
+
+{"messages":[{"role":"system","content":"{{TEMPLATE_PROMPTS_RUNTIME}}"},{"role":"user","content":"DEVICE STRUCTURE:\n{{DEVICE_STRUCTURE}}\n\nUSER QUERY: turn on porch light at sunset"},{"role":"assistant","content":"{\"tool\":\"Routine\",\"args\":{\"routines\":[{\"id\":1,\"name\":\"Porch light at sunset\",\"parent\":0,\"if\":[{\"at\":{\"sunset\":0}}],\"then\":[{\"device\":\"12345\",\"command\":\"DON\"}],\"else\":[]}]}}"}]}
+
+{"messages":[{"role":"system","content":"{{TEMPLATE_PROMPTS_RUNTIME}}"},{"role":"user","content":"DEVICE STRUCTURE:\n{{DEVICE_STRUCTURE}}\n\nUSER QUERY: if temperature goes above 75 degrees turn on the fan"},{"role":"assistant","content":"{\"tool\":\"Routine\",\"args\":{\"routines\":[{\"id\":1,\"name\":\"Auto fan on high temp\",\"parent\":0,\"if\":[{\">\": {\"device\":\"67890\",\"status\":\"ST\",\"value\":7500,\"uom\":\"17\",\"precision\":2}}],\"then\":[{\"device\":\"11111\",\"command\":\"DON\"}],\"else\":[]}]}}"}]}
+
+{"messages":[{"role":"system","content":"{{TEMPLATE_PROMPTS_RUNTIME}}"},{"role":"user","content":"DEVICE STRUCTURE:\n{{DEVICE_STRUCTURE}}\n\nUSER QUERY: flash the kitchen light 3 times when doorbell is pressed"},{"role":"assistant","content":"{\"tool\":\"Routine\",\"args\":{\"routines\":[{\"id\":1,\"name\":\"Doorbell flash alert\",\"parent\":0,\"if\":[{\"==\":{\"device\":\"22222\",\"control\":\"DON\"}}],\"then\":[{\"repeat\":{\"count\":3,\"actions\":[{\"device\":\"33333\",\"command\":\"DON\"},{\"wait\":{\"duration\":1,\"random\":false}},{\"device\":\"33333\",\"command\":\"DOF\"},{\"wait\":{\"duration\":1,\"random\":false}}]}}],\"else\":[]}]}}"}]}
+
+Now generate your samples based on the DEVICE STRUCTURE provided. Remember: Output ONLY the JSONL lines, nothing else.
